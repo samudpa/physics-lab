@@ -1,0 +1,11 @@
+{
+    "tape": {
+        "points": [[759,214],[762,2408]],
+        "values": [20,1480],
+        "offset": 108
+    },
+    "ball": {
+        "diameter": 24.7,
+        "diameter_err": 0.1
+    }
+}
