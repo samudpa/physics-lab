@@ -1,20 +1,12 @@
 import numpy as np
 from scipy.optimize import curve_fit
-from utils import load_data, find_period
-
-t_err_factor = 1
-pos_err_factor = 1
+from utils import load_data, find_period, model
 
 # Part 1: compare the angular frequency of a free pendulum and a damped pendulum
 
 data_dicts = []
 for filename in ['data/single_pendulum.txt', 'data/single_pendulum_damped.txt']:
-    data_dict = load_data(
-        filename,
-        fix_offset=True,
-        t_err_factor=t_err_factor,
-        pos_err_factor=pos_err_factor,
-    )
+    data_dict = load_data(filename)
     data_dicts.append(data_dict['red'])
 
 T_0, T_0_err, omega_0, omega_0_err = find_period(**data_dicts[0])
@@ -28,10 +20,6 @@ print(f'  omega_d [rad/s]\t= {omega_d} ± {omega_d_err:.2g}')
 
 # Part 2: find the decay time (tau) of the damped pendulum
 
-def model(t, A, omega, phi, tau):
-    '''Damped pendulum model'''
-    return A * np.cos(omega * t + phi) * np.exp(-t / tau)
-
 popt, pcov = curve_fit(
     model,
     data_dicts[1]['t'],
@@ -43,7 +31,7 @@ perr = np.sqrt(np.diag(pcov))
 A_hat, omega_hat, phi_hat, tau_hat = popt
 A_err, omega_err, phi_err, tau_err = perr
 
-print('\nBest fit on the damped pendulum:')
+print('\nBEST FIT parameters of the damped pendulum:')
 print(f'  tau [s]\t= {tau_hat} ± {tau_err:.2g}')
 print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
 print(f'  omega [rad/s]\t= {omega_hat} ± {omega_err:.2g}')

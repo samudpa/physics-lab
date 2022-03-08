@@ -1,5 +1,8 @@
 import numpy as np
 
+t_err_factor = 1
+pos_err_factor = 1
+
 def load_raw_data(filename, cutoff=600):
     '''Load time and position data from .txt'''
 
@@ -18,7 +21,7 @@ def load_raw_data(filename, cutoff=600):
 
     return data_dict
 
-def load_data(filename, cutoff=600, fix_offset=False, t_err_factor=1, pos_err_factor=1):
+def load_data(filename, cutoff=600, fix_offset=True):
     '''Load time, position data from .txt and calculate the errors'''
 
     # load data of both pendulums
@@ -53,11 +56,11 @@ def find_roots(x, y):
     np.place(sign, sign==0, [1])
     sign_diff = np.diff(sign)
     indexes = np.concatenate([abs(sign_diff) == 2, [False]])
-    return x[indexes]
+    return x[indexes], indexes
 
 def find_period(t, pos, t_err, **kwargs):
     '''Find the period and angular frequency of a wave'''
-    roots = find_roots(t, pos)
+    roots, _ = find_roots(t, pos)
     t_diff = np.diff(roots)
 
     # period
@@ -69,3 +72,11 @@ def find_period(t, pos, t_err, **kwargs):
     omega_err = omega * T_err / T
 
     return T, T_err, omega, omega_err
+
+def model(t, A, omega, phi, tau):
+    '''Damped pendulum model'''
+    return A * np.cos(omega * t + phi) * np.exp(-t / tau)
+
+def abs_model(t, A, omega, phi, tau):
+    '''Damped pendulum model'''
+    return np.abs(model(t, A, omega, phi, tau))
