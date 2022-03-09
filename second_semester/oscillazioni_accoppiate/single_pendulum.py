@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.optimize import curve_fit
 from utils import load_data, find_period, model
+from expected_omega0 import get_expected_omega0
 
 # Part 1: compare the angular frequency of a free pendulum and a damped pendulum
 
@@ -18,7 +19,11 @@ print(f'  T_d [s]\t\t= {T_d} ± {T_d_err:.2g}')
 print(f'  omega_0 [rad/s]\t= {omega_0} ± {omega_0_err:.2g}')
 print(f'  omega_d [rad/s]\t= {omega_d} ± {omega_d_err:.2g}')
 
-# Part 2: find the decay time (tau) of the damped pendulum
+omega_0_exp, omega_0_exp_err = get_expected_omega0()
+print('\nExpected angular frequency:')
+print(f'  omega_0_exp [rad/s]\t= {omega_0_exp} ± {omega_0_exp_err:.2g}')
+
+# Part 3: find the decay time (tau) of the damped pendulum
 
 popt, pcov = curve_fit(
     model,
