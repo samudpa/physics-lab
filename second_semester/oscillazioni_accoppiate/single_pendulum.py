@@ -2,6 +2,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 from utils import load_data, find_period, model
 from expected_omega0 import get_expected_omega0
+from draw_plot import draw_plot
 
 # Part 1: compare the angular frequency of a free pendulum and a damped pendulum
 
@@ -41,3 +42,28 @@ print(f'  tau [s]\t= {tau_hat} ± {tau_err:.2g}')
 print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
 print(f'  omega [rad/s]\t= {omega_hat} ± {omega_err:.2g}')
 print(f'  phi [rad]\t= {phi_hat} ± {phi_err:.2g}')
+
+# draw plots
+
+draw_plot(
+    [data_dicts[0]],
+    limits = {
+        'xlim': (-1, 19),
+        'ylim_data': (-190, 190)
+    },
+    title = 'Oscillatore singolo non smorzato',
+    filename = 'graphs/not_damped.pdf',
+    show = False)
+
+draw_plot(
+    [data_dicts[1]],
+    limits = {
+        'xlim': (-1.5, 32),
+        'ylim_data': (-240, 240),
+        'ylim_res': (-22,22)
+    },
+    models = [model],
+    popts = [popt],
+    title = 'Oscillatore singolo smorzato',
+    filename = 'graphs/damped.pdf',
+    show = False)
