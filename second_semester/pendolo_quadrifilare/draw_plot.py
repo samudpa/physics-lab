@@ -15,7 +15,7 @@ def plot_period_time(t, T, filename):
     plt.errorbar(t, T, fmt='.', ms=MARKERSIZE, color='black')
 
     # title and labels
-    plt.title('Periodo $T$ in funzione di $t$')
+    plt.title('Periodo $T$ di un pendolo smorzato')
     plt.xlabel('$t$ [s]')
     plt.ylabel('Periodo [s]')
     plt.grid(which='both', ls='dashed', color='lightgray')
@@ -53,7 +53,7 @@ def plot_v0_time(t, v0, popt, model, filename):
     ax_res.set_ylim((-0.013, 0.013))
 
     # title and labels
-    ax_data.set_title('Velocità $v_0$ nel punto più basso in funzione di $t$')
+    ax_data.set_title('Velocità $v_0$ nel punto più basso')
     ax_data.set_ylabel('$v_0$ [m/s]')
     ax_res.set_ylabel('Residui [m/s]')
     ax_res.set_xlabel('$t$ [s]')
