@@ -5,6 +5,8 @@ from matplotlib import gridspec
 # This script works but it's extremely unpythonic, unreadable and full of redundant code.
 # Proceed with caution!
 
+# TODO: display angular frequency and period values, separate models from data_dicts
+
 GAP = 5
 ALPHA = 0.4
 MARKERSIZE = 4
@@ -23,7 +25,7 @@ def draw_plot(
 
     # setup plot
     plt.style.use(['science', 'grid'])
-    fig = plt.figure(figsize=(5, 4))
+    fig = plt.figure(figsize=(4, 3.5))
 
     # setup default parameters
     n = len(data_dicts) # number of data_dicts
