@@ -19,8 +19,8 @@ s_disk_err = 0.005e-2
 
 # densities
 
-density_alu = 2700
-density_brass = 8500
+density_alu = 2700 # https://it.wikipedia.org/wiki/Alluminio
+density_brass = 8550 # https://it.wikipedia.org/wiki/Ottone_(lega)
 density_alu_err = 100
 density_brass_err = 100
 
@@ -74,14 +74,30 @@ g0 = 9.81
 g0_err = 0.01
 
 m = m_rod + m_disk
-l = l_rod + 2 * r_disk
-
 m_err = np.sqrt(m_rod_err**2 + m_disk_err**2)
-l_err = np.sqrt(l_rod_err**2 + (2*r_disk_err)**2)
 
-omega0_sq = m * g0 * l / I
+# calculate center of mass distance (d)
+
+A = m_rod * l_rod/2
+A_err = A * np.sqrt((m_rod_err/m_rod)**2 + (l_rod_err/l_rod)**2)
+B = m_disk * (l_rod + r_disk)
+B_err = B * np.sqrt((m_disk_err/m_disk)**2 + (l_rod_err**2 + r_disk_err**2)/(l_rod + r_disk)**2)
+
+d_num = A + B
+d_num_err = np.sqrt(A_err**2 + B_err**2)
+
+d_den = m_rod + m_disk
+d_den_err = np.sqrt(m_rod_err**2 + m_disk_err**2)
+
+d = d_num / d_den # center of mass
+d_err = d * np.sqrt((d_num_err/d_num)**2 + (d_den_err/d_den)**2)
+print(d,d_err)
+
+# calculate omega 0
+
+omega0_sq = m * g0 * d / I
 omega0_sq_err = omega0_sq * np.sqrt(
-    (m_err/m)**2 + (g0_err/g0)**2 + (l_err/l)**2 + (I_err/I)**2
+    (m_err/m)**2 + (g0_err/g0)**2 + (d_err/d)**2 + (I_err/I)**2
 )
 
 omega0 = np.sqrt(omega0_sq)
