@@ -132,9 +132,9 @@ def draw_plot(
     # labels and legend
     ax_data.legend()
     ax_data.set_title(title)
-    ax_data.set_ylabel('Ampiezza')
+    ax_data.set_ylabel('Ampiezza [au]')
     if ax_res:
-        ax_res.set_ylabel('Residui')
+        ax_res.set_ylabel('Residui [au]')
         ax_res.set_xlabel('Tempo [s]')
         plt.setp(ax_data.get_xticklabels(), visible=False)
     else:
