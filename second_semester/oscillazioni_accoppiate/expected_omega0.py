@@ -91,7 +91,7 @@ d_den_err = np.sqrt(m_rod_err**2 + m_disk_err**2)
 
 d = d_num / d_den # center of mass
 d_err = d * np.sqrt((d_num_err/d_num)**2 + (d_den_err/d_den)**2)
-print(d,d_err)
+print(f'\nd = {d} ± {d_err:.2g} m')
 
 # calculate omega 0
 

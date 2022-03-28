@@ -131,7 +131,7 @@ def draw_plot(
     if model:
         ax_data.legend()
     ax_data.set_title(title)
-    ax_data.set_ylabel('Ampiezza [au]')
+    ax_data.set_ylabel('Posizione [au]')
     if ax_res:
         ax_res.set_ylabel('Residui [au]')
         ax_res.set_xlabel('Tempo [s]')

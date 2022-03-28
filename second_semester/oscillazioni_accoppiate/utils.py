@@ -1,9 +1,9 @@
 import numpy as np
 
-t_err_factor = 1
-pos_err_factor = 1
+t_err_factor = 1/np.sqrt(12)
+pos_err_factor = 1/np.sqrt(12)
 
-def load_raw_data(filename, cutoff=600):
+def load_raw_data(filename, start=0, stop=600):
     '''Load time and position data from .txt'''
 
     # load and format data inside a dict
@@ -14,18 +14,17 @@ def load_raw_data(filename, cutoff=600):
     }
 
     # discards the data after the cutoff
-    if cutoff != None:
-        for color in data_dict.keys():
-            for category in data_dict[color].keys():
-                data_dict[color][category] = data_dict[color][category][0:cutoff]
+    for color in data_dict.keys():
+        for category in data_dict[color].keys():
+            data_dict[color][category] = data_dict[color][category][start:stop]
 
     return data_dict
 
-def load_data(filename, cutoff=600, fix_offset=True):
+def load_data(filename, start=0, stop=600, fix_offset=False):
     '''Load time, position data from .txt and calculate the errors'''
 
     # load data of both pendulums
-    data_raw = load_raw_data(filename, cutoff)
+    data_raw = load_raw_data(filename, start, stop)
 
     # iterate over each pendulum
     result = {}
@@ -50,9 +49,10 @@ def load_data(filename, cutoff=600, fix_offset=True):
 
     return result
 
-def find_roots(x, y):
+def find_roots(x, y, offset=0):
     '''Find the roots of a set of points'''
-    sign = np.sign(y)
+    y_ = y - offset
+    sign = np.sign(y_)
     np.place(sign, sign==0, [1])
     sign_diff = np.diff(sign)
     indexes = np.concatenate([abs(sign_diff) == 2, [False]])
@@ -60,7 +60,7 @@ def find_roots(x, y):
 
 def find_period(t, pos, t_err, **kwargs):
     '''Find the period and angular frequency of a wave'''
-    roots, _ = find_roots(t, pos)
+    roots, _ = find_roots(t, pos, np.mean(pos))
     t_diff = np.diff(roots)
 
     # period
@@ -73,10 +73,10 @@ def find_period(t, pos, t_err, **kwargs):
 
     return T, T_err, omega, omega_err
 
-def model(t, A, omega, phi, tau):
+def model(t, A, omega, phi, lambda_, offset):
     '''Damped pendulum model'''
-    return A * np.cos(omega * t + phi) * np.exp(-t / tau)
+    return A * np.cos(omega * t + phi) * np.exp(-t * lambda_) + offset
 
-def abs_model(t, A, omega, phi, tau):
+def abs_model(t, A, omega, phi, lambda_, offset):
     '''Damped pendulum model'''
-    return np.abs(model(t, A, omega, phi, tau))
+    return np.abs(model(t, A, omega, phi, lambda_, offset))

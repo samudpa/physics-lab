@@ -31,17 +31,31 @@ popt, pcov = curve_fit(
     data_dicts[1]['t'],
     data_dicts[1]['pos'],
     sigma=data_dicts[1]['pos_err'],
-    p0=(200, 4, -np.pi / 4, 25),
+    p0=(200, 4, -np.pi / 4, 1/25, 400),
 )
 perr = np.sqrt(np.diag(pcov))
-A_hat, omega_hat, phi_hat, tau_hat = popt
-A_err, omega_err, phi_err, tau_err = perr
+A_hat, omega_hat, phi_hat, lambda_hat, offset_hat = popt
+A_err, omega_err, phi_err, lambda_err, offset_err = perr
 
 print('\nBEST FIT parameters of the damped pendulum:')
-print(f'  tau [s]\t= {tau_hat} ± {tau_err:.2g}')
-print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
 print(f'  omega [rad/s]\t= {omega_hat} ± {omega_err:.2g}')
 print(f'  phi [rad]\t= {phi_hat} ± {phi_err:.2g}')
+print(f'  lambda [s]\t= {lambda_hat} ± {lambda_err:.2g}')
+print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
+print(f'  offset [au]\t= {offset_hat} ± {offset_err:.2g}')
+
+# calculate chi2
+
+df_dt = A_hat * np.exp(-data_dicts[1]['t'] * lambda_hat) * (
+    omega_hat * np.sin(omega_hat * data_dicts[1]['t'] + phi_hat) + 
+    lambda_hat * np.cos(omega_hat * data_dicts[1]['t'] + phi_hat)
+)
+sigma2 = data_dicts[1]['pos_err']**2 + df_dt**2 * data_dicts[1]['t_err']**2
+
+res = data_dicts[1]['pos'] - model(data_dicts[1]['t'], *popt)
+chi2 = (res**2 / sigma2).sum()
+ni = len(data_dicts[1]['pos']) - 4
+print(f'chi2: {chi2:.2f}/{ni}')
 
 # draw plots
 
@@ -49,7 +63,7 @@ draw_plot(
     [data_dicts[0]],
     limits = {
         'xlim': (-1, 19),
-        'ylim_data': (-190, 190)
+        'ylim_data': (270, 685)
     },
     title = 'Oscillatore singolo non smorzato',
     filename = 'graphs/not_damped.pdf',
@@ -59,7 +73,7 @@ draw_plot(
     [data_dicts[1]],
     limits = {
         'xlim': (-1.5, 32),
-        'ylim_data': (-240, 240),
+        'ylim_data': (201, 680),
         'ylim_res': (-22,22)
     },
     models = [model],
