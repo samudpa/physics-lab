@@ -2,11 +2,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import gridspec
 
-# This script works but it's extremely unpythonic, unreadable and full of redundant code.
-# Proceed with caution!
-
-# TODO: display angular frequency and period values, separate models from data_dicts
-
 GAP = 5
 ALPHA = 0.4
 MARKERSIZE = 4
@@ -25,7 +20,10 @@ def draw_plot(
 
     # setup plot
     plt.style.use(['science', 'grid'])
-    fig = plt.figure(figsize=(4, 3.5))
+    if models:
+        fig = plt.figure(figsize=(4, 3.5))
+    else:
+        fig = plt.figure(figsize=(4, 2.3))
 
     # setup default parameters
     n = len(data_dicts) # number of data_dicts
@@ -101,11 +99,11 @@ def draw_plot(
 
         else:
 
-            # connect data points with dashed lines
+            # connect data points
             ax_data.plot(
                 data['t'],
                 data['pos'],
-                ls='--',
+                ls='-',
                 color=color,
                 alpha=ALPHA,
             )
@@ -130,7 +128,8 @@ def draw_plot(
         ax_res.grid(which='both', ls='dashed', color='lightgray', zorder=0)
 
     # labels and legend
-    ax_data.legend()
+    if model:
+        ax_data.legend()
     ax_data.set_title(title)
     ax_data.set_ylabel('Ampiezza [au]')
     if ax_res:
