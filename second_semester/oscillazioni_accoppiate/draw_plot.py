@@ -108,6 +108,15 @@ def draw_plot(
                 alpha=ALPHA,
             )
 
+            ax_data.axhline(
+                np.mean(data['pos']),
+                linewidth=1,
+                ls='--',
+                color=color,
+                alpha=ALPHA,
+                zorder=1
+            )
+
     # add residuals horizontal lines
     if ax_res:
         ax_res.axhline(
