@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.optimize import curve_fit
 
 t_err_factor = 1/np.sqrt(12)
 pos_err_factor = 1/np.sqrt(12)
@@ -80,3 +81,30 @@ def model(t, A, omega, phi, lambda_, offset):
 def abs_model(t, A, omega, phi, lambda_, offset):
     '''Damped pendulum model'''
     return np.abs(model(t, A, omega, phi, lambda_, offset))
+
+def fit_data(data_dict, p0=None, model=model, print_results=True):
+    '''Fit pendulum position data on a model, and estimate the decay time (tau)'''
+
+    t = data_dict['t']
+    pos = data_dict['pos']
+    pos_err = data_dict['pos_err']
+
+    popt, pcov = curve_fit(model, t, pos, sigma = pos_err, p0 = p0)
+    perr = np.sqrt(np.diag(pcov))
+    A_hat, omega_hat, phi_hat, lambda_hat, offset_hat = popt
+    A_err, omega_err, phi_err, lambda_err, offset_err = perr
+
+    if print_results:
+        print('BEST FIT parameters:')
+        print(f'  omega [rad/s]\t= {omega_hat} ± {omega_err:.2g}')
+        print(f'  phi [rad]\t= {phi_hat} ± {phi_err:.2g}')
+        print(f'  lambda [s]\t= {lambda_hat} ± {lambda_err:.2g}')
+        print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
+        print(f'  offset [au]\t= {offset_hat} ± {offset_err:.2g}')
+
+        tau = 1/popt[3]
+        tau_err =  perr[3] * tau**2
+
+        print(f'Decay time tau [s] = {tau} ± {tau_err:.2g}')
+
+    return popt, perr
