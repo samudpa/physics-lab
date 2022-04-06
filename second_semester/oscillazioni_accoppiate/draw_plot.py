@@ -14,13 +14,16 @@ def draw_plot(
     limits=None,    # graph limits (xlim, ylim ...)
     labels=None,    # data and model labels
     colors=None,    # list of plot colors
+    figsize=None,   # figure size
     filename=None,  # save graph with this filename
     show=True,      # show interactive plot after saving
 ):
 
     # setup plot
     plt.style.use(['science', 'grid'])
-    if models:
+    if figsize:
+        fig = fig = plt.figure(figsize=figsize)
+    elif models:
         fig = plt.figure(figsize=(4, 3.5))
     else:
         fig = plt.figure(figsize=(4, 2.3))

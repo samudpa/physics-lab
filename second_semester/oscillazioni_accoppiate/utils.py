@@ -74,15 +74,19 @@ def find_period(t, pos, t_err, **kwargs):
 
     return T, T_err, omega, omega_err
 
-def model(t, A, omega, phi, lambda_, offset):
+def pendulum_model(t, A, omega, phi, lambda_, offset):
     '''Damped pendulum model'''
     return A * np.cos(omega * t + phi) * np.exp(-t * lambda_) + offset
 
-def abs_model(t, A, omega, phi, lambda_, offset):
-    '''Damped pendulum model'''
-    return np.abs(model(t, A, omega, phi, lambda_, offset))
+# def abs_model(t, A, omega, phi, lambda_, offset):
+#     '''Damped pendulum model'''
+#     return np.abs(model(t, A, omega, phi, lambda_, offset))
 
-def fit_data(data_dict, p0=None, model=model, print_results=True):
+def beats_model(t, A, lambda_, omega_p, omega_b, phi_p, phi_b, offset):
+    '''Model describing the beats phenomenon'''
+    return offset + A * np.exp(- lambda_ * t) * np.cos(omega_p * t + phi_p) * np.cos(omega_b * t + phi_b)
+
+def fit_data(data_dict, p0=None, model=pendulum_model, print_results=True):
     '''Fit pendulum position data on a model, and estimate the decay time (tau)'''
 
     t = data_dict['t']
@@ -91,20 +95,45 @@ def fit_data(data_dict, p0=None, model=model, print_results=True):
 
     popt, pcov = curve_fit(model, t, pos, sigma = pos_err, p0 = p0)
     perr = np.sqrt(np.diag(pcov))
-    A_hat, omega_hat, phi_hat, lambda_hat, offset_hat = popt
-    A_err, omega_err, phi_err, lambda_err, offset_err = perr
 
+    # this part could be improved
     if print_results:
-        print('BEST FIT parameters:')
-        print(f'  omega [rad/s]\t= {omega_hat} ± {omega_err:.2g}')
-        print(f'  phi [rad]\t= {phi_hat} ± {phi_err:.2g}')
-        print(f'  lambda [s]\t= {lambda_hat} ± {lambda_err:.2g}')
-        print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
-        print(f'  offset [au]\t= {offset_hat} ± {offset_err:.2g}')
 
-        tau = 1/popt[3]
-        tau_err =  perr[3] * tau**2
+        if model == pendulum_model:
 
+            A_hat, omega_hat, phi_hat, lambda_hat, offset_hat = popt
+            A_err, omega_err, phi_err, lambda_err, offset_err = perr
+
+            print('BEST FIT parameters:')
+            print(f'  omega [rad/s]\t= {omega_hat} ± {omega_err:.2g}')
+            print(f'  phi [rad]\t= {phi_hat} ± {phi_err:.2g}')
+            print(f'  lambda [s]\t= {lambda_hat} ± {lambda_err:.2g}')
+            print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
+            print(f'  offset [au]\t= {offset_hat} ± {offset_err:.2g}')
+
+        elif model == beats_model:
+
+            A_hat, lambda_hat, omega_p_hat, omega_b_hat, phi_p_hat, phi_b_hat, offset_hat = popt
+            A_err, lambda_err, omega_p_err, omega_b_err, phi_p_err, phi_b_err, offset_err = perr
+
+            print('BEST FIT parameters:')
+            print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
+            print(f'  offset [au]\t= {offset_hat} ± {offset_err:.2g}')
+            print(f'  lambda [s]\t= {lambda_hat} ± {lambda_err:.2g}')
+            print(f'  omega_p [rad/s]\t= {omega_p_hat} ± {omega_p_err:.2g}')
+            print(f'  omega_b [rad/s]\t= {omega_b_hat} ± {omega_b_err:.2g}')
+            print(f'  phi_p [rad]\t= {phi_p_hat} ± {phi_p_err:.2g}')
+            print(f'  phi_b [rad]\t= {phi_b_hat} ± {phi_b_err:.2g}')
+
+        else:
+
+            print('BEST FIT parameters:')
+            print(popt)
+            print(perr)
+
+        # find decay time
+        tau = 1/lambda_hat
+        tau_err =  lambda_err * tau**2
         print(f'Decay time tau [s] = {tau} ± {tau_err:.2g}')
 
     return popt, perr

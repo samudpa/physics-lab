@@ -1,5 +1,5 @@
 import numpy as np
-from utils import load_data, find_period, model, fit_data
+from utils import load_data, find_period, fit_data, pendulum_model
 from expected_omega0 import get_expected_omega0
 from draw_plot import draw_plot
 
@@ -53,7 +53,7 @@ draw_plot(
         'ylim_data': (250, 700),
         'ylim_res': (-3,3)
     },
-    models = [model],
+    models = [pendulum_model],
     popts = [popt_not_damped],
     title = 'Oscillatore singolo non smorzato',
     filename = 'graphs/not_damped_fit.pdf',
@@ -66,7 +66,7 @@ draw_plot(
         'ylim_data': (265, 600),
         'ylim_res': (-4,4)
     },
-    models = [model],
+    models = [pendulum_model],
     popts = [popt_damped],
     title = 'Oscillatore singolo smorzato',
     filename = 'graphs/damped.pdf',
