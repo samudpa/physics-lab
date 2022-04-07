@@ -133,11 +133,11 @@ def fit_data(data_dict, p0=None, model=pendulum_model, print_results=True, bound
             A_err, omega_err, phi_err, lambda_err, offset_err = perr
 
             print('BEST FIT parameters:')
-            print(f'  omega [rad/s]\t= {omega_hat} ± {omega_err:.2g}')
-            print(f'  phi [rad]\t= {phi_hat} ± {phi_err:.2g}')
-            print(f'  lambda [s-1]\t= {lambda_hat} ± {lambda_err:.2g}')
-            print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
-            print(f'  offset [au]\t= {offset_hat} ± {offset_err:.2g}')
+            print(f'  omega [rad/s]\t= {fmt_measure(omega_hat, omega_err)}')
+            print(f'  phi [rad]\t= {fmt_measure(phi_hat, phi_err)}')
+            print(f'  lambda [s-1]\t= {fmt_measure(lambda_hat, lambda_err)}')
+            print(f'  A [au]\t= {fmt_measure(A_hat, A_err)}')
+            print(f'  offset [au]\t= {fmt_measure(offset_hat, offset_err)}')
 
         elif model == beats_model:
 
@@ -145,13 +145,13 @@ def fit_data(data_dict, p0=None, model=pendulum_model, print_results=True, bound
             A_err, lambda_err, omega_p_err, omega_b_err, phi_p_err, phi_b_err, offset_err = perr
 
             print('BEST FIT parameters:')
-            print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
-            print(f'  offset [au]\t= {offset_hat} ± {offset_err:.2g}')
-            print(f'  lambda [s-1]\t= {lambda_hat} ± {lambda_err:.2g}')
-            print(f'  omega_p [rad/s]\t= {omega_p_hat} ± {omega_p_err:.2g}')
-            print(f'  omega_b [rad/s]\t= {omega_b_hat} ± {omega_b_err:.2g}')
-            print(f'  phi_p [rad]\t= {phi_p_hat} ± {phi_p_err:.2g}')
-            print(f'  phi_b [rad]\t= {phi_b_hat} ± {phi_b_err:.2g}')
+            print(f'  A [au]\t= {fmt_measure(A_hat, A_err)}')
+            print(f'  offset [au]\t= {fmt_measure(offset_hat, offset_err)}')
+            print(f'  lambda [s-1]\t= {fmt_measure(lambda_hat, lambda_err)}')
+            print(f'  omega_p [rad/s]\t= {fmt_measure(omega_p_hat, omega_p_err)}')
+            print(f'  omega_b [rad/s]\t= {fmt_measure(omega_b_hat, omega_b_err)}')
+            print(f'  phi_p [rad]\t= {fmt_measure(phi_p_hat, phi_p_err)}')
+            print(f'  phi_b [rad]\t= {fmt_measure(phi_b_hat, phi_b_err)}')
 
         else:
 
@@ -162,7 +162,7 @@ def fit_data(data_dict, p0=None, model=pendulum_model, print_results=True, bound
         # find decay time
         tau = 1/lambda_hat
         tau_err =  lambda_err * tau**2
-        print(f'Decay time tau [s] = {tau} ± {tau_err:.2g}')
+        print(f'Decay time tau [s] = {fmt_measure(tau, tau_err)}')
         
         # find chi2 value
         res = pos - model(t, *popt)
@@ -173,3 +173,13 @@ def fit_data(data_dict, p0=None, model=pendulum_model, print_results=True, bound
         print(f'chi2 = {chi2:.1f}/{ni}, ({chi2_sigma_diff:.2f} sig)')
 
     return popt, perr, chi2, ni
+
+def fmt_measure(value, err, sig=2, sep=' \pm '):
+    '''Returns a formatted version of value \pm err to sig significant figures'''
+
+    decimals = int(sig - np.floor(np.log10(np.abs(err))) - 1)
+    if decimals >= 0:
+        formatter = '{:.' + str(decimals) + 'f}'
+        return formatter.format(value) + sep + formatter.format(err)
+    if decimals < 0:
+        return f'{int(np.round(value, decimals))}{sep}{int(np.round(err, decimals))}'

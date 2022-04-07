@@ -1,5 +1,5 @@
 import numpy as np
-from utils import load_data, find_period, beats_model, fit_data
+from utils import load_data, find_period, beats_model, fit_data, fmt_measure
 from draw_plot import draw_plot
 
 # Part 1: compare the angular frequency of two pendula connected by a spring,
@@ -20,10 +20,10 @@ popt_blue, perr_blue, _, _ = fit_data(
     print_results=False)
 
 print('\nAngular frequency estimates for red and blue pendulum (phase) [rad/s]:')
-print(f'omega_red  (sgn): {omega_red:.6f} ± {omega_red_err:.2g}')
-print(f'omega_red  (fit): {popt_red[1]:.6f} ± {perr_red[1]:.2g}')
-print(f'omega_blue (sgn): {omega_blue:.6f} ± {omega_blue_err:.2g}')
-print(f'omega_blue (fit): {popt_blue[1]:.6f} ± {perr_blue[1]:.2g}')
+print(f'omega_red  (sgn): {fmt_measure(omega_red, omega_red_err)}')
+print(f'omega_red  (fit): {fmt_measure(popt_red[1], perr_red[1])}')
+print(f'omega_blue (sgn): {fmt_measure(omega_blue, omega_blue_err)}')
+print(f'omega_blue (fit): {fmt_measure(popt_blue[1], perr_blue[1])}')
 
 omega_f = np.mean([omega_red, omega_blue, popt_red[1], popt_blue[1]])
 omega_f_err = np.sqrt(omega_red_err**2 + omega_blue_err**2 + perr_blue[1]**2 + perr_red[1]**2) / 4
@@ -43,10 +43,10 @@ popt_blue, perr_blue, _, _ = fit_data(
     print_results=False)
 
 print('\nAngular frequency estimates for red and blue pendulum (antiphase) [rad/s]:')
-print(f'omega_red  (sgn): {omega_red:.6f} ± {omega_red_err:.2g}')
-print(f'omega_red  (fit): {popt_red[1]:.6f} ± {perr_red[1]:.2g}')
-print(f'omega_blue (sgn): {omega_blue:.6f} ± {omega_blue_err:.2g}')
-print(f'omega_blue (fit): {popt_blue[1]:.6f} ± {perr_blue[1]:.2g}')
+print(f'omega_red  (sgn): {fmt_measure(omega_red, omega_red_err)}')
+print(f'omega_red  (fit): {fmt_measure(popt_red[1], perr_red[1])}')
+print(f'omega_blue (sgn): {fmt_measure(omega_blue, omega_blue_err)}')
+print(f'omega_blue (fit): {fmt_measure(popt_blue[1], perr_blue[1])}')
 
 omega_c = np.mean([omega_red, omega_blue, popt_red[1], popt_blue[1]])
 omega_c_err = np.sqrt(omega_red_err**2 + omega_blue_err**2 + perr_blue[1]**2 + perr_red[1]**2) / 4
@@ -55,8 +55,8 @@ percent_diff = (omega_c/omega_f - 1) * 100
 
 # print results
 print('\nAngular frequency of in phase / antiphase oscillations (avg):')
-print(f'  omega_f [rad/s]\t= {omega_f:.6f} ± {omega_f_err:.2g}')
-print(f'  omega_c [rad/s]\t= {omega_c:.6f} ± {omega_c_err:.2g}')
+print(f'  omega_f [rad/s]\t= {fmt_measure(omega_f, omega_f_err)}')
+print(f'  omega_c [rad/s]\t= {fmt_measure(omega_c, omega_c_err)}')
 print(f'--> Difference between omega_f and omega_c is around {percent_diff:.2g}%')
 
 # Part 2: beat phenomenom. Compare carrier/modulating frequency to omega_f and omega_c
@@ -94,10 +94,10 @@ omega_p_err = perr[2]
 omega_b_err = perr[3]
 
 print('\nCarrier/modulating frequency VS expected:')
-print(f'  omega_p [rad/s]\t= {omega_p} ± {omega_p_err:.2g}')
-print(f'  omega_p_exp [rad/s]\t= {omega_p_exp} ± {omega_p_exp_err:.2g}')
-print(f'  omega_b [rad/s]\t= {omega_b} ± {omega_b_err:.2g}')
-print(f'  omega_b_exp [rad/s]\t= {omega_b_exp} ± {omega_b_exp_err:.2g}')
+print(f'  omega_p [rad/s]\t= {fmt_measure(omega_p, omega_p_err)}')
+print(f'  omega_p_exp [rad/s]\t= {fmt_measure(omega_p_exp, omega_p_exp_err)}')
+print(f'  omega_b [rad/s]\t= {fmt_measure(omega_b, omega_b_err)}')
+print(f'  omega_b_exp [rad/s]\t= {fmt_measure(omega_b_exp, omega_b_exp_err)}')
 
 # Plots
 

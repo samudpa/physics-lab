@@ -1,5 +1,5 @@
 import numpy as np
-from utils import load_data, find_period, fit_data, pendulum_model
+from utils import load_data, find_period, fit_data, pendulum_model, fmt_measure
 from expected_omega0 import get_expected_omega0
 from draw_plot import draw_plot
 
@@ -17,14 +17,14 @@ T_0, T_0_err, omega_0, omega_0_err = find_period(**data_dicts[0])
 T_d, T_d_err, omega_d, omega_d_err = find_period(**data_dicts[1])
 
 print('Angular frequency estimate for free and damped pendulum:')
-print(f'  T_0 [s]\t\t= {T_0} ± {T_0_err:.2g}')
-print(f'  T_d [s]\t\t= {T_d} ± {T_d_err:.2g}')
-print(f'  omega_0 [rad/s]\t= {omega_0} ± {omega_0_err:.2g}')
-print(f'  omega_d [rad/s]\t= {omega_d} ± {omega_d_err:.2g}')
+print(f'  T_0 [s]\t\t= {fmt_measure(T_0, T_0_err)}')
+print(f'  T_d [s]\t\t= {fmt_measure(T_d, T_d_err)}')
+print(f'  omega_0 [rad/s]\t= {fmt_measure(omega_0, omega_0_err)}')
+print(f'  omega_d [rad/s]\t= {fmt_measure(omega_d, omega_d_err)}')
 
 omega_0_exp, omega_0_exp_err = get_expected_omega0()
 print('\nExpected angular frequency:')
-print(f'  omega_0_exp [rad/s]\t= {omega_0_exp} ± {omega_0_exp_err:.2g}')
+print(f'  omega_0_exp [rad/s]\t= {fmt_measure(omega_0_exp, omega_0_exp_err)}')
 
 print('\n(not damped)')
 popt_not_damped, _, chi2_not_damped, ni_not_damped = fit_data(data_dicts[0], p0 = (200, omega_0, 0, 1/50, 400))
