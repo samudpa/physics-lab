@@ -11,6 +11,8 @@ def draw_plot(
     title,          # plot title
     models=None,    # best-fit models ...
     popts=None,     # ... and parameters
+    chi2=None,      # chi-square ...
+    ni=None,        # ... and degrees of freedom
     limits=None,    # graph limits (xlim, ylim ...)
     labels=None,    # data and model labels
     colors=None,    # list of plot colors
@@ -150,6 +152,15 @@ def draw_plot(
         plt.setp(ax_data.get_xticklabels(), visible=False)
     else:
         ax_data.set_xlabel('Tempo [s]')
+
+    # add textbox with chi2 result
+    if chi2 and ni:
+
+        textstr = f'$\\chi^2/\\nu = {chi2:.1f}/{ni}$'
+
+        # place a text box in upper left in axes coords
+        ax_data.text(0.97, 0.05, textstr, transform=ax_data.transAxes, fontsize=12,
+                horizontalalignment='right', verticalalignment='bottom')
 
     # remove vertical space between residuals and plot
     fig.tight_layout()

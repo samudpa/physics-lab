@@ -27,12 +27,12 @@ print('\nExpected angular frequency:')
 print(f'  omega_0_exp [rad/s]\t= {omega_0_exp} ± {omega_0_exp_err:.2g}')
 
 print('\n(not damped)')
-popt_not_damped, _ = fit_data(data_dicts[0], p0 = (200, omega_0, 0, 1/50, 400))
+popt_not_damped, _, chi2_not_damped, ni_not_damped = fit_data(data_dicts[0], p0 = (200, omega_0, 0, 1/50, 400))
 
 # Part 2: find the decay time (tau) of the damped pendulum
 
 print('\n(damped)')
-popt_damped, perr_damped = fit_data(data_dicts[1], p0 = (200, omega_d, -np.pi / 4, 1/25, 400))
+popt_damped, _, chi2_damped, ni_damped = fit_data(data_dicts[1], p0 = (200, omega_d, -np.pi / 4, 1/25, 400))
 
 # Draw plots
 
@@ -55,6 +55,8 @@ draw_plot(
     },
     models = [pendulum_model],
     popts = [popt_not_damped],
+    chi2 = chi2_not_damped,
+    ni = ni_not_damped,
     title = 'Oscillatore singolo non smorzato',
     filename = 'graphs/not_damped_fit.pdf',
     show = False)
@@ -64,10 +66,12 @@ draw_plot(
     limits = {
         'xlim': (6.5, 29),
         'ylim_data': (265, 600),
-        'ylim_res': (-4,4)
+        'ylim_res': (-5,5)
     },
     models = [pendulum_model],
     popts = [popt_damped],
+    chi2 = chi2_damped,
+    ni = ni_damped,
     title = 'Oscillatore singolo smorzato',
     filename = 'graphs/damped.pdf',
     show = False)

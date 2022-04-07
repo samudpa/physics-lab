@@ -78,25 +78,53 @@ def pendulum_model(t, A, omega, phi, lambda_, offset):
     '''Damped pendulum model'''
     return A * np.cos(omega * t + phi) * np.exp(-t * lambda_) + offset
 
-# def abs_model(t, A, omega, phi, lambda_, offset):
-#     '''Damped pendulum model'''
-#     return np.abs(model(t, A, omega, phi, lambda_, offset))
+def pendulum_model_dfdt(t, A, omega, phi, lambda_, offset):
+    return A * np.exp(-lambda_ * t) * (- omega * np.sin(omega * t + phi) - lambda_ * np.cos(omega * t + phi))
 
 def beats_model(t, A, lambda_, omega_p, omega_b, phi_p, phi_b, offset):
     '''Model describing the beats phenomenon'''
     return offset + A * np.exp(- lambda_ * t) * np.cos(omega_p * t + phi_p) * np.cos(omega_b * t + phi_b)
 
-def fit_data(data_dict, p0=None, model=pendulum_model, print_results=True):
+def beats_model_dfdt(t, A, lambda_, omega_p, omega_b, phi_p, phi_b, offset):
+    return A * np.exp(- lambda_ * t) * (
+        (- lambda_) * np.cos(omega_p * t + phi_p) * np.cos(omega_b * t + phi_b) + \
+        (- omega_p) * np.sin(omega_p * t + phi_p) * np.cos(omega_b * t + phi_b) + \
+        (- omega_b) * np.cos(omega_p * t + phi_p) * np.sin(omega_b * t + phi_b)
+    )
+
+
+def fit_data(data_dict, p0=None, model=pendulum_model, print_results=True, bounds=(-np.inf, np.inf), N=10):
     '''Fit pendulum position data on a model, and estimate the decay time (tau)'''
+
+    # choose df/dt model to use in sigma calculation
+    if model == pendulum_model:
+        dfdt = pendulum_model_dfdt
+        ddf = 5
+    elif model == beats_model:
+        dfdt = beats_model_dfdt
+        ddf = 7
+    else:
+        dfdt = model
+        ddf = 1
 
     t = data_dict['t']
     pos = data_dict['pos']
+    t_err = data_dict['t_err']
     pos_err = data_dict['pos_err']
 
-    popt, pcov = curve_fit(model, t, pos, sigma = pos_err, p0 = p0)
-    perr = np.sqrt(np.diag(pcov))
+    # iterate curve_fit to get the best results,
+    # propagating the error on t over sigma using
+    #   sigma^2 = y_err^2 + (df/dx)^2 * x_err^2
+
+    sigma = pos_err
+    for _ in range(N):
+        popt, pcov = curve_fit(model, t, pos, sigma = sigma, p0 = p0, bounds = bounds)
+        perr = np.sqrt(np.diag(pcov))
+        sigma = np.sqrt(pos_err**2 + (dfdt(t, *popt))**2 * t_err**2)
 
     # this part could be improved
+    chi2 = 0
+    ni = 0
     if print_results:
 
         if model == pendulum_model:
@@ -107,7 +135,7 @@ def fit_data(data_dict, p0=None, model=pendulum_model, print_results=True):
             print('BEST FIT parameters:')
             print(f'  omega [rad/s]\t= {omega_hat} ± {omega_err:.2g}')
             print(f'  phi [rad]\t= {phi_hat} ± {phi_err:.2g}')
-            print(f'  lambda [s]\t= {lambda_hat} ± {lambda_err:.2g}')
+            print(f'  lambda [s-1]\t= {lambda_hat} ± {lambda_err:.2g}')
             print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
             print(f'  offset [au]\t= {offset_hat} ± {offset_err:.2g}')
 
@@ -119,7 +147,7 @@ def fit_data(data_dict, p0=None, model=pendulum_model, print_results=True):
             print('BEST FIT parameters:')
             print(f'  A [au]\t= {A_hat} ± {A_err:.2g}')
             print(f'  offset [au]\t= {offset_hat} ± {offset_err:.2g}')
-            print(f'  lambda [s]\t= {lambda_hat} ± {lambda_err:.2g}')
+            print(f'  lambda [s-1]\t= {lambda_hat} ± {lambda_err:.2g}')
             print(f'  omega_p [rad/s]\t= {omega_p_hat} ± {omega_p_err:.2g}')
             print(f'  omega_b [rad/s]\t= {omega_b_hat} ± {omega_b_err:.2g}')
             print(f'  phi_p [rad]\t= {phi_p_hat} ± {phi_p_err:.2g}')
@@ -135,5 +163,13 @@ def fit_data(data_dict, p0=None, model=pendulum_model, print_results=True):
         tau = 1/lambda_hat
         tau_err =  lambda_err * tau**2
         print(f'Decay time tau [s] = {tau} ± {tau_err:.2g}')
+        
+        # find chi2 value
+        res = pos - model(t, *popt)
+        chi2 = ((res/sigma)**2).sum()
+        ni = len(pos) - ddf
+        ni_err = np.sqrt(2*ni)
+        chi2_sigma_diff = (chi2 - ni)/ni_err
+        print(f'chi2 = {chi2:.1f}/{ni}, ({chi2_sigma_diff:.2f} sig)')
 
-    return popt, perr
+    return popt, perr, chi2, ni

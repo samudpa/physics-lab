@@ -1,6 +1,5 @@
 import numpy as np
-from scipy.optimize import curve_fit
-from utils import find_roots, load_data, find_period, beats_model, fit_data
+from utils import load_data, find_period, beats_model, fit_data
 from draw_plot import draw_plot
 
 # Part 1: compare the angular frequency of two pendula connected by a spring,
@@ -11,46 +10,46 @@ data_dict_phase = load_data('data/coupled_pendulum_phase.txt', fix_offset=True)
 T_red, T_red_err, omega_red, omega_red_err = find_period(**data_dict_phase['red'])
 T_blue, T_blue_err, omega_blue, omega_blue_err = find_period(**data_dict_phase['blue'])
 
-popt, perr = fit_data(
+popt_red, perr_red, _, _ = fit_data(
     data_dict_phase['red'],
     p0 = (200, omega_red, -2, 0.02, 0),
     print_results=False)
-popt_blue, perr_blue = fit_data(
+popt_blue, perr_blue, _, _ = fit_data(
     data_dict_phase['blue'],
     p0 = (200, omega_blue, -2, 0.02, 0),
     print_results=False)
 
 print('\nAngular frequency estimates for red and blue pendulum (phase) [rad/s]:')
 print(f'omega_red  (sgn): {omega_red:.6f} ± {omega_red_err:.2g}')
-print(f'omega_red  (fit): {popt[1]:.6f} ± {perr[1]:.2g}')
+print(f'omega_red  (fit): {popt_red[1]:.6f} ± {perr_red[1]:.2g}')
 print(f'omega_blue (sgn): {omega_blue:.6f} ± {omega_blue_err:.2g}')
 print(f'omega_blue (fit): {popt_blue[1]:.6f} ± {perr_blue[1]:.2g}')
 
-omega_f = np.mean([omega_red, omega_blue, popt[1], popt_blue[1]])
-omega_f_err = np.sqrt(omega_red_err**2 + omega_blue_err**2 + perr_blue[1]**2 + perr[1]**2) / 4
+omega_f = np.mean([omega_red, omega_blue, popt_red[1], popt_blue[1]])
+omega_f_err = np.sqrt(omega_red_err**2 + omega_blue_err**2 + perr_blue[1]**2 + perr_red[1]**2) / 4
 
 # antiphase
 data_dict_antiphase = load_data('data/coupled_pendulum_antiphase.txt', fix_offset=True)
 T_red, T_red_err, omega_red, omega_red_err = find_period(**data_dict_antiphase['red'])
 T_blue, T_blue_err, omega_blue, omega_blue_err = find_period(**data_dict_antiphase['blue'])
 
-popt, perr = fit_data(
+popt_red, perr_red, _, _ = fit_data(
     data_dict_antiphase['red'],
     p0 = (200, omega_red, -2, 0.02, 0),
     print_results=False)
-popt_blue, perr_blue = fit_data(
+popt_blue, perr_blue, _, _ = fit_data(
     data_dict_antiphase['blue'],
     p0 = (200, omega_blue, -2, 0.02, 0),
     print_results=False)
 
 print('\nAngular frequency estimates for red and blue pendulum (antiphase) [rad/s]:')
 print(f'omega_red  (sgn): {omega_red:.6f} ± {omega_red_err:.2g}')
-print(f'omega_red  (fit): {popt[1]:.6f} ± {perr[1]:.2g}')
+print(f'omega_red  (fit): {popt_red[1]:.6f} ± {perr_red[1]:.2g}')
 print(f'omega_blue (sgn): {omega_blue:.6f} ± {omega_blue_err:.2g}')
 print(f'omega_blue (fit): {popt_blue[1]:.6f} ± {perr_blue[1]:.2g}')
 
-omega_c = np.mean([omega_red, omega_blue, popt[1], popt_blue[1]])
-omega_c_err = np.sqrt(omega_red_err**2 + omega_blue_err**2 + perr_blue[1]**2 + perr[1]**2) / 4
+omega_c = np.mean([omega_red, omega_blue, popt_red[1], popt_blue[1]])
+omega_c_err = np.sqrt(omega_red_err**2 + omega_blue_err**2 + perr_blue[1]**2 + perr_red[1]**2) / 4
 
 percent_diff = (omega_c/omega_f - 1) * 100
 
@@ -69,20 +68,24 @@ omega_p_exp_err = np.sqrt(omega_f_err**2 + omega_c_err**2) / 2
 omega_b_exp_err = omega_p_exp_err
 
 # load data
-data_dict_beats = load_data('data/coupled_pendulum_beats.txt', start=205, stop=1170, fix_offset=True)
+data_dict_beats = load_data('data/coupled_pendulum_beats.txt', start=40, stop=810, fix_offset=True)
 
 # carrier wave period, angular frequency
 T_p, T_p_err, omega_p, omega_p_err = find_period(**data_dict_beats['blue'])
 
 # A, lambda, omega_p, omega_b, phi_p, phi_b, offset
-p0 = (300, 0.02, omega_p_exp, omega_b_exp, 0, 0, 0)
+p0 = (300, 0.02, omega_p_exp, omega_b_exp, -np.pi, -np.pi/2, 0)
+r = 0.1
 
 # fit data and print results
 print('\n(blue)')
-popt, perr = fit_data(
+popt, perr, chi2, ni = fit_data(
     data_dict_beats['blue'],
     model = beats_model,
     p0 = p0,
+    bounds = [
+        (270, 0.005, omega_p_exp-r, omega_b_exp-r, -np.pi-0.5, -np.pi, -10),
+        (320, 0.04,  omega_p_exp+r, omega_b_exp+r,  -np.pi+0.5,  0,  10)],
     print_results=True)
 
 omega_p = popt[2]
@@ -130,12 +133,14 @@ draw_plot(
     title = 'Fenomeno dei battimenti',
     popts = [popt],
     models = [beats_model],
+    chi2 = chi2,
+    ni = ni,
     limits = {
-        'xlim': (9, 61),
+        'xlim': (1, 42),
         'ylim_data': (-220, 220),
-        'ylim_res': (-12,12),
+        'ylim_res': (-7,7),
     },
     figsize = (8,3.5),
     filename='graphs/beats.pdf',
-    show=False
+    show=True
 )
