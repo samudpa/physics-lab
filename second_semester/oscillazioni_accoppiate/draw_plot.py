@@ -18,6 +18,8 @@ def draw_plot(
     colors=None,    # list of plot colors
     figsize=None,   # figure size
     filename=None,  # save graph with this filename
+    h_ratio=(3,1),  # gridspec height_ratio
+    legend=True,    # show legend
     show=True,      # show interactive plot after saving
 ):
 
@@ -54,7 +56,7 @@ def draw_plot(
     else:
 
         # if there is a model, create a gridspec with two axes (data and residuals)
-        gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])
+        gs = gridspec.GridSpec(2, 1, height_ratios=h_ratio)
         ax_data = fig.add_subplot(gs[0])
         ax_res = fig.add_subplot(gs[1], sharex=ax_data)
 
@@ -142,7 +144,7 @@ def draw_plot(
         ax_res.grid(which='both', ls='dashed', color='lightgray', zorder=0)
 
     # labels and legend
-    if model:
+    if model and legend:
         ax_data.legend()
     ax_data.set_title(title)
     ax_data.set_ylabel('Posizione [au]')

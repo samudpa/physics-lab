@@ -175,7 +175,7 @@ def fit_data(data_dict, p0=None, model=pendulum_model, print_results=True, bound
     return popt, perr, chi2, ni
 
 def fmt_measure(value, err, sig=2, sep=' \pm '):
-    '''Returns a formatted version of value \pm err to sig significant figures'''
+    '''Returns a formatted string of (value, err) with the error rounded to sig significant figures'''
 
     decimals = int(sig - np.floor(np.log10(np.abs(err))) - 1)
     if decimals >= 0:

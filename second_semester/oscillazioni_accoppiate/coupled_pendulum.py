@@ -68,13 +68,13 @@ omega_p_exp_err = np.sqrt(omega_f_err**2 + omega_c_err**2) / 2
 omega_b_exp_err = omega_p_exp_err
 
 # load data
-data_dict_beats = load_data('data/coupled_pendulum_beats.txt', start=40, stop=810, fix_offset=True)
+data_dict_beats = load_data('data/coupled_pendulum_beats.txt', start=40, stop=810)
 
 # carrier wave period, angular frequency
 T_p, T_p_err, omega_p, omega_p_err = find_period(**data_dict_beats['blue'])
 
 # A, lambda, omega_p, omega_b, phi_p, phi_b, offset
-p0 = (300, 0.02, omega_p_exp, omega_b_exp, -np.pi, -np.pi/2, 0)
+p0 = (300, 0.02, omega_p_exp, omega_b_exp, -np.pi, -np.pi/2, 480)
 r = 0.1
 
 # fit data and print results
@@ -84,8 +84,8 @@ popt, perr, chi2, ni = fit_data(
     model = beats_model,
     p0 = p0,
     bounds = [
-        (270, 0.005, omega_p_exp-r, omega_b_exp-r, -np.pi-0.5, -np.pi, -10),
-        (320, 0.04,  omega_p_exp+r, omega_b_exp+r,  -np.pi+0.5,  0,  10)],
+        (270, 0.005, omega_p_exp-r, omega_b_exp-r, -np.pi-0.5, -np.pi, 460),
+        (320, 0.04,  omega_p_exp+r, omega_b_exp+r,  -np.pi+0.5,  0,  500)],
     print_results=True)
 
 omega_p = popt[2]
@@ -137,10 +137,28 @@ draw_plot(
     ni = ni,
     limits = {
         'xlim': (1, 42),
-        'ylim_data': (-220, 220),
+        'ylim_data': (-220+480, 220+480),
         'ylim_res': (-7,7),
     },
     figsize = (8,3.5),
     filename='graphs/beats.pdf',
-    show=True
+    show=False
+)
+
+# beats (focus)
+draw_plot(
+    [data_dict_beats['blue']],
+    title = 'Battimenti: focus sui residui',
+    popts = [popt],
+    models = [beats_model],
+    limits = {
+        'xlim': (13, 20),
+        'ylim_data': (230, 240+480),
+        'ylim_res': (-6.3,6),
+    },
+    h_ratio = (1,1),
+    legend=False,
+    figsize = (4,2.5),
+    filename='graphs/beats_zoom.pdf',
+    show=False
 )

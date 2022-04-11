@@ -66,7 +66,7 @@ draw_plot(
     limits = {
         'xlim': (6.5, 29),
         'ylim_data': (265, 600),
-        'ylim_res': (-5,5)
+        'ylim_res': (-5.5,5.5)
     },
     models = [pendulum_model],
     popts = [popt_damped],
