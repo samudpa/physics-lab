@@ -26,7 +26,7 @@ def draw_plot(
     # setup plot
     plt.style.use(['science', 'grid'])
     if figsize:
-        fig = fig = plt.figure(figsize=figsize)
+        fig = plt.figure(figsize=figsize)
     elif models:
         fig = plt.figure(figsize=(4, 3.5))
     else:
