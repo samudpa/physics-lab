@@ -3,7 +3,7 @@ import json
 import itertools
 from scipy.optimize import minimize, curve_fit
 from utils import fmt_measure
-from draw_plot import draw_halo
+from draw_plot import draw_halo, draw_halo_residuals
 
 
 def ang_dist(alpha_A, delta_A, alpha_B, delta_B):
@@ -138,5 +138,15 @@ angular_radius_deg = angular_radius * (180 / np.pi)  # [degrees]
 print(f"\nlunar halo angular radius:\n\t{angular_radius:.4g} rad, or")
 print(f"\t{angular_radius_deg:.4g} degrees")
 
-# draw plot
-draw_halo(x, y, err, px_to_rad, x0, y0, R, stars, pairs, ang_dists)
+# plot halo datapoints and circular best-fit
+# draw_halo(x, y, err, px_to_rad, x0, y0, R, stars, pairs, ang_dists)
+
+r = (x - x0, y - y0)  # datapoints relative positions
+res = np.sqrt(r[0] ** 2 + r[1] ** 2) - R  # residuals
+theta = np.arctan2(*r[::-1])  # find angle of each datapoint
+
+indexes = np.argsort(theta)
+theta = theta[indexes]
+res = res[indexes]
+
+draw_halo_residuals(theta, res, err, R, chi2, dof)

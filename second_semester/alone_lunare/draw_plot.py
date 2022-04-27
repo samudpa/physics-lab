@@ -1,6 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+# plot style configuration
+color_data = "#004488"
+color_fit = "#bb5566"
+color_star = "#367e65"
+alpha_fit = 0.7
+alpha_star_lines = 0.5
+scatter_size = 5
+text_offset = (8, -8)
+text_bbox = {"facecolor": "white", "edgecolor": "none", "pad": 1}
+
 
 def draw_halo(
     x,
@@ -13,22 +23,12 @@ def draw_halo(
     stars,
     pairs,
     ang_dists,  # star data, pairs of stars and angular distances
-    filename="graphs/halo.png",  # save figure as
+    filename="graphs/circular_fit.png",  # save figure as
 ):
 
     # setup plot
     plt.style.use(["science", "grid"])
     fig = plt.figure(figsize=(4, 4), dpi=600)
-
-    # plot style configuration
-    color_data = "#004488"
-    color_fit = "#bb5566"
-    color_star = "#367e65"
-    alpha_fit = 0.7
-    alpha_star_lines = 0.5
-    scatter_size = 5
-    text_offset = (8, -8)
-    text_bbox = {"facecolor": "white", "edgecolor": "none", "pad": 1}
 
     # plot datapoints
     ax = fig.add_subplot(111)
@@ -99,6 +99,53 @@ def draw_halo(
     ax.set_ylabel("y [px]")
     ax.set_aspect(1)
     ax.legend()
+    ax.grid(which="both", axis="both", color="lightgray", zorder=0)
+
+    plt.savefig(filename)
+
+
+def draw_halo_residuals(
+    theta, res, err, R, chi2, dof, filename="graphs/circular_fit_residuals.png"
+):
+
+    # setup plot
+    plt.style.use(["science", "grid"])
+    fig = plt.figure(figsize=(4.2, 2.6), dpi=600)
+
+    # datapoints
+    ax = fig.add_subplot(111)
+    ax.errorbar(
+        theta,
+        res,
+        fmt=".",
+        xerr=err / R,
+        yerr=err,
+        color=color_data,
+        label="Dati",
+        zorder=3,
+    )
+
+    # model horizontal line
+    ax.axhline(0, color=color_fit, label="Modello")
+
+    # xticks in multiples of pi
+    # https://stackoverflow.com/a/61737382
+    ax.set_xticks(np.arange(-np.pi, np.pi + 0.01, np.pi / 4))
+    labels = ["$-\pi$", "", "$-\pi/2$", "", "0", "", "$\pi/2$", "", "$\pi$"]
+    ax.set_xticklabels(labels)
+
+    # x, y limits
+    ax.set_xlim((-np.pi - 0.2, np.pi + 0.2))
+    ax.set_ylim((-5.5, 5.5))
+
+    # chi2 result
+    ax.text(0, +4.3, f"$\chi^2/\\nu = {chi2:.1f}/{dof}$", ha="center")
+
+    # grid, labels, legend
+    ax.set_title("Alone lunare: residui fit circolare")
+    ax.set_xlabel("$\\theta$ [rad]")
+    ax.set_ylabel("Residui [px]")
+    ax.legend(loc="lower left")
     ax.grid(which="both", axis="both", color="lightgray", zorder=0)
 
     plt.savefig(filename)
