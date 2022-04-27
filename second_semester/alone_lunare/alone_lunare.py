@@ -3,7 +3,7 @@ import json
 import itertools
 from scipy.optimize import minimize, curve_fit
 from utils import fmt_measure
-from draw_plot import draw_halo, draw_halo_residuals
+from draw_plot import draw_halo, draw_halo_residuals, draw_refractive_index
 
 
 def ang_dist(alpha_A, delta_A, alpha_B, delta_B):
@@ -139,7 +139,7 @@ print(f"\nlunar halo angular radius:\n\t{angular_radius:.4g} rad, or")
 print(f"\t{angular_radius_deg:.4g} degrees")
 
 # plot halo datapoints and circular best-fit
-# draw_halo(x, y, err, px_to_rad, x0, y0, R, stars, pairs, ang_dists)
+draw_halo(x, y, err, px_to_rad, x0, y0, R, stars, pairs, ang_dists)
 
 r = (x - x0, y - y0)  # datapoints relative positions
 res = np.sqrt(r[0] ** 2 + r[1] ** 2) - R  # residuals
@@ -149,4 +149,54 @@ indexes = np.argsort(theta)
 theta = theta[indexes]
 res = res[indexes]
 
+# plot circular fit residuals
 draw_halo_residuals(theta, res, err, R, chi2, dof)
+
+
+def refractive_index(theta_min, apex_angle):
+    """Returns the refractive index knowing
+    minimum angle of deviation and apex angle"""
+
+    return np.sin((theta_min + apex_angle) / 2) / np.sin(apex_angle / 2)
+
+
+def vertex_angle(n):
+    """Returns the vertex angle of a regular polygon with n sides"""
+
+    return (n - 2) * np.pi / n
+
+
+def to_radians(degrees):
+    """degree -> radians conversion"""
+    return degrees / 180 * np.pi
+
+
+# apex angles of regular polygons (3 to 8 sides)
+apex_angles_reg_poly = np.array(
+    [
+        vertex_angle(3),  # triangle
+        vertex_angle(4),  # square
+        to_radians(120) - vertex_angle(5),  # pentagon
+        vertex_angle(6) / 2,  # hexagon
+        to_radians(540) - 4 * vertex_angle(7),  # heptagon
+        to_radians(180) - vertex_angle(8),  # octagon
+    ]
+)
+y_poly = refractive_index(angular_radius, apex_angles_reg_poly)
+
+# refractive_index() graph
+xx = np.linspace(0.01, 2 * np.pi - 0.01, 100)
+yy = refractive_index(angular_radius, xx)
+
+# special polygons labels
+poly_labels = ["$3/6$\nlati", "$4$\nlati", "$5$\nlati", "", "$7$\nlati", "$8$\nlati"]
+# draw refractive_index() graph
+draw_refractive_index(xx, yy, apex_angles_reg_poly, y_poly, poly_labels)
+
+# print results for regular polygons
+print("\nrefractive indexes for regular polygons (3 to 8 sides):")
+print("\tsides\tvertex angle\tapex angle\tn")
+for i, (alpha, n) in enumerate(zip(apex_angles_reg_poly, y_poly)):
+    print(
+        f"\t{i+3}\t{vertex_angle(i+3)/np.pi*180:.2f}°\t\t{alpha/np.pi*180:.2f}°\t\t{n:.3f}"
+    )

@@ -110,7 +110,7 @@ def draw_halo_residuals(
 
     # setup plot
     plt.style.use(["science", "grid"])
-    fig = plt.figure(figsize=(4.2, 2.6), dpi=600)
+    fig = plt.figure(figsize=(4, 2.6), dpi=600)
 
     # datapoints
     ax = fig.add_subplot(111)
@@ -146,6 +146,72 @@ def draw_halo_residuals(
     ax.set_xlabel("$\\theta$ [rad]")
     ax.set_ylabel("Residui [px]")
     ax.legend(loc="lower left")
+    ax.grid(which="both", axis="both", color="lightgray", zorder=0)
+
+    plt.savefig(filename)
+
+
+def draw_refractive_index(
+    x, y, x_poly, y_poly, labels_poly, filename="graphs/refractive_index.png"
+):
+
+    # setup plot
+    plt.style.use(["science", "grid"])
+    fig = plt.figure(figsize=(4, 2.6), dpi=600)
+
+    # graph
+    ax = fig.add_subplot(111)
+    ax.plot(x, y, color=color_fit, label="$n(\\alpha)$", zorder=2)
+
+    # horizontal line at n=1
+    # ax.axhline(1, color="#000000", linestyle="--", zorder=1)
+
+    # horizontal line connecting to triangle/hexagon
+    ax.axhline(1.3, color=color_data, ls="--", label="$n = 1.3$", zorder=4)
+
+    # vertical lines (regular polygons)
+    for i, (xx, yy, label) in enumerate(zip(x_poly, y_poly, labels_poly)):
+
+        if i != 3:  # skip hexagon since it's equal to triangle
+
+            # vertical line
+            if i == 0:
+
+                # add label
+                ax.axvline(
+                    xx,
+                    ls="--",
+                    color="gray",
+                    label="prismi\nregolari",
+                    alpha=alpha_fit,
+                    zorder=3,
+                )
+
+            else:
+
+                # don't add label
+                ax.axvline(xx, ls="--", color="gray", alpha=alpha_fit, zorder=3)
+
+            ax.scatter(xx, yy, s=6, zorder=5)
+            ax.text(
+                xx, 3.6, label, ha="center", va="center", color="gray", bbox=text_bbox
+            )
+
+    # xticks in multiples of pi
+    # https://stackoverflow.com/a/61737382
+    ax.set_xticks(np.arange(0, np.pi + np.pi / 8 + 0.01, np.pi / 4))
+    labels = ["0", "$\pi/4$", "$\pi/2$", "$3\pi/4$", "$\pi$"]
+    ax.set_xticklabels(labels)
+
+    # x, y limits
+    ax.set_xlim((0, np.pi - np.pi / 8))
+    ax.set_ylim((0.65, 4))
+
+    # grid, labels, legend
+    ax.set_title("Indice di rifrazione")
+    ax.set_xlabel("$\\alpha$ [rad]")
+    ax.set_ylabel("$n$")
+    ax.legend(loc="upper right")
     ax.grid(which="both", axis="both", color="lightgray", zorder=0)
 
     plt.savefig(filename)
