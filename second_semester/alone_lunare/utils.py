@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def fmt_measure(value, err, sig=2, sep=" \pm\n\t"):
+def fmt_measure(value, err, sig=2, sep=" \pm "):
     """Returns a formatted string of (value, err) with the error rounded to sig significant figures"""
 
     decimals = int(sig - np.floor(np.log10(np.abs(err))) - 1)

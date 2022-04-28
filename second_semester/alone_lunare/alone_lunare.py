@@ -1,7 +1,7 @@
 import numpy as np
 import json
 import itertools
-from scipy.optimize import minimize, curve_fit
+from scipy.optimize import curve_fit, least_squares
 from utils import fmt_measure
 from draw_plot import draw_halo, draw_halo_residuals, draw_refractive_index
 
@@ -25,7 +25,7 @@ def dist(vec_A, vec_B):
 
 
 # read lunar halo data (image coordinates)
-err = 1.5  # error on pixel measuremenet [px]
+err = 1  # error on pixel measuremenet [px]
 x, y = np.loadtxt("data/halo.csv", delimiter=", ", unpack=True)
 
 # read calibration data (star astronomical coordinates and image coordinates)
@@ -109,40 +109,56 @@ px_to_rad_err = px_tot_err * px_to_rad / px_tot
 print(f"\npixel-to-radian factor:\n\t{fmt_measure(px_to_rad, px_to_rad_err)} rad/px")
 
 
-def cost_fun(x, data_x, data_y, err=2):
-    """Returns chi2 value of circular fit"""
+def circular_fit_res(x, data_x, data_y):
+    """Returns residuals of circular fit"""
 
     x0, y0, R = x  # unpack x
     r = (data_x - x0, data_y - y0)  # relative positions from center
     dist = np.sqrt(r[0] ** 2 + r[1] ** 2)  # distances from center
-    chi2 = ((dist - R) ** 2 / err**2).sum()
+    res = dist - R
 
-    return chi2
+    return res
 
 
 # circular fit
 x0 = (620, 380, 190)
-res = minimize(cost_fun, x0=x0, args=(x, y, err))
-print(f"\ncircular fit results:\n{res}")
+res_lsq = least_squares(circular_fit_res, x0=x0, args=(x, y))
+x0, y0, R = res_lsq.x
+# find standard error
+J = res_lsq.jac  # jacobian matrix
+pcov = np.linalg.inv(J.T @ J)
+x0_err, y0_err, R_err = np.sqrt(np.diag(pcov))
+print(f"\ncircular fit results:")
+print(f"\tx0 [px] = {fmt_measure(x0, x0_err)}")
+print(f"\ty0 [px] = {fmt_measure(y0, y0_err)}")
+print(f"\tR  [px] = {fmt_measure(R, R_err)}")
 
 # chi2
-chi2 = res.fun
+chi2 = res_lsq.cost / (err**2)
 dof = len(x) - 3
 chi2_sigma_dist = (chi2 - dof) / np.sqrt(2 * dof)
 print(f"\nchi2 result:\n\t{chi2:.1f}/{dof} ({chi2_sigma_dist:.1f} sig)")
 
 # calculate angular radius of halo
-x0, y0, R = res.x
+# radians and degrees
 angular_radius = R * px_to_rad  # [rad]
 angular_radius_deg = angular_radius * (180 / np.pi)  # [degrees]
-print(f"\nlunar halo angular radius:\n\t{angular_radius:.4g} rad, or")
-print(f"\t{angular_radius_deg:.4g} degrees")
+# errors
+angular_radius_err = angular_radius * np.sqrt(
+    (R_err / R) ** 2 + (px_to_rad_err / px_to_rad) ** 2
+)
+angular_radius_deg_err = angular_radius_err * (180 / np.pi)
+# print results
+print(
+    f"\nlunar halo angular radius:\n\t{fmt_measure(angular_radius, angular_radius_err)} rad, or"
+)
+print(f"\t{fmt_measure(angular_radius_deg, angular_radius_deg_err)} degrees")
 
 # plot halo datapoints and circular best-fit
 draw_halo(x, y, err, px_to_rad, x0, y0, R, stars, pairs, ang_dists)
 
 r = (x - x0, y - y0)  # datapoints relative positions
-res = np.sqrt(r[0] ** 2 + r[1] ** 2) - R  # residuals
+res = res_lsq.fun  # residuals
 theta = np.arctan2(*r[::-1])  # find angle of each datapoint
 
 indexes = np.argsort(theta)
@@ -156,13 +172,11 @@ draw_halo_residuals(theta, res, err, R, chi2, dof)
 def refractive_index(theta_min, apex_angle):
     """Returns the refractive index knowing
     minimum angle of deviation and apex angle"""
-
     return np.sin((theta_min + apex_angle) / 2) / np.sin(apex_angle / 2)
 
 
 def vertex_angle(n):
     """Returns the vertex angle of a regular polygon with n sides"""
-
     return (n - 2) * np.pi / n
 
 
@@ -172,7 +186,7 @@ def to_radians(degrees):
 
 
 # apex angles of regular polygons (3 to 8 sides)
-apex_angles_reg_poly = np.array(
+x_poly = np.array(
     [
         vertex_angle(3),  # triangle
         vertex_angle(4),  # square
@@ -182,21 +196,21 @@ apex_angles_reg_poly = np.array(
         to_radians(180) - vertex_angle(8),  # octagon
     ]
 )
-y_poly = refractive_index(angular_radius, apex_angles_reg_poly)
+y_poly = refractive_index(angular_radius, x_poly)
 
 # refractive_index() graph
-xx = np.linspace(0.01, 2 * np.pi - 0.01, 100)
-yy = refractive_index(angular_radius, xx)
+x_ref_ind = np.linspace(0.01, 2 * np.pi - 0.01, 100)
+y_ref_ind = refractive_index(angular_radius, x_ref_ind)
 
 # special polygons labels
 poly_labels = ["$3/6$\nlati", "$4$\nlati", "$5$\nlati", "", "$7$\nlati", "$8$\nlati"]
 # draw refractive_index() graph
-draw_refractive_index(xx, yy, apex_angles_reg_poly, y_poly, poly_labels)
+draw_refractive_index(x_ref_ind, y_ref_ind, x_poly, y_poly, poly_labels)
 
 # print results for regular polygons
 print("\nrefractive indexes for regular polygons (3 to 8 sides):")
-print("\tsides\tvertex angle\tapex angle\tn")
-for i, (alpha, n) in enumerate(zip(apex_angles_reg_poly, y_poly)):
+print("\t(sides, vertex angle, apex angle, n)")
+for i, (alpha, n) in enumerate(zip(x_poly, y_poly)):
     print(
-        f"\t{i+3}\t{vertex_angle(i+3)/np.pi*180:.2f}°\t\t{alpha/np.pi*180:.2f}°\t\t{n:.3f}"
+        f"\t{i+3}   {vertex_angle(i+3)/np.pi*180:.2f}°   {alpha/np.pi*180:.2f}°   {n:.3f}"
     )
