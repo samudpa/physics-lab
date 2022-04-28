@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import gridspec
 
 # plot style configuration
 color_data = "#004488"
@@ -10,6 +11,53 @@ alpha_star_lines = 0.5
 scatter_size = 5
 text_offset = (8, -8)
 text_bbox = {"facecolor": "white", "edgecolor": "none", "pad": 1}
+
+
+def draw_fit(
+    x, y, x_err, y_err, res, model, popt, text, filename="graphs/star_linear_fit.png"
+):
+
+    # setup plot
+    plt.style.use(["science", "grid"])
+    fig = plt.figure(figsize=(4, 3), dpi=600)
+    gs = gridspec.GridSpec(2, 1, height_ratios=(3, 2))
+
+    # data axis
+    ax_data = fig.add_subplot(gs[0])
+    ax_data.errorbar(
+        x, y, xerr=x_err, yerr=y_err, fmt=".", color=color_data, label="Dati", zorder=2
+    )
+    xx = np.linspace(x.min() - 0.1, x.max() + 0.1, 2)
+    ax_data.plot(xx, model(xx, *popt), color=color_fit, label="Modello", zorder=1)
+
+    # text box with best-fit parameters and chi2 test result
+    ax_data.text(0.84, 400, text, va="top")
+
+    # residuals axis
+    ax_res = fig.add_subplot(gs[1], sharex=ax_data)
+    ax_res.errorbar(x, res, xerr=x_err, yerr=y_err, fmt=".", color=color_data, zorder=2)
+    ax_res.axhline(0, color=color_fit, zorder=1)
+
+    # limits
+    ax_data.set_xlim((0.54, 1.08))
+    ax_res.set_ylim((-7, 7))
+
+    # labels, legend
+    ax_data.set_title("Distanza in pixel VS distanza angolare")
+    ax_data.set_ylabel("$r$ [px]")
+    ax_res.set_ylabel("Residui [px]")
+    ax_res.set_xlabel("$\\varphi$ [rad]")
+    ax_data.legend()
+
+    # grid
+    ax_data.grid(which="both", axis="both", color="lightgray", zorder=0)
+    ax_res.grid(which="both", axis="both", color="lightgray", zorder=0)
+
+    # remove vertical space between residuals and plot
+    fig.tight_layout()
+    plt.subplots_adjust(hspace=0)
+
+    plt.savefig(filename)
 
 
 def draw_halo(
@@ -163,11 +211,8 @@ def draw_refractive_index(
     ax = fig.add_subplot(111)
     ax.plot(x, y, color=color_fit, label="$n(\\alpha)$", zorder=2)
 
-    # horizontal line at n=1
-    # ax.axhline(1, color="#000000", linestyle="--", zorder=1)
-
     # horizontal line connecting to triangle/hexagon
-    ax.axhline(1.3, color=color_data, ls="--", label="$n = 1.3$", zorder=4)
+    ax.axhline(1.31, color=color_data, ls="--", label="$n = 1.31$", zorder=4)
 
     # vertical lines (regular polygons)
     for i, (xx, yy, label) in enumerate(zip(x_poly, y_poly, labels_poly)):

@@ -3,7 +3,12 @@ import json
 import itertools
 from scipy.optimize import curve_fit, least_squares
 from utils import fmt_measure
-from draw_plot import draw_halo, draw_halo_residuals, draw_refractive_index
+from draw_plot import (
+    draw_fit,
+    draw_halo,
+    draw_halo_residuals,
+    draw_refractive_index,
+)
 
 
 def ang_dist(alpha_A, delta_A, alpha_B, delta_B):
@@ -25,7 +30,7 @@ def dist(vec_A, vec_B):
 
 
 # read lunar halo data (image coordinates)
-err = 1  # error on pixel measuremenet [px]
+err = 1.5  # error on pixel measurement [px]
 x, y = np.loadtxt("data/halo.csv", delimiter=", ", unpack=True)
 
 # read calibration data (star astronomical coordinates and image coordinates)
@@ -98,14 +103,14 @@ chi2_sigma_dist = (chi2 - dof) / np.sqrt(2 * dof)
 
 print(f"linear fit chi2:\n\t{chi2:.1f}/{dof} ({chi2_sigma_dist:.1f} sig)")
 
+# draw fit results
+text = f"$m = {fmt_measure(popt[0], perr[0])}$ px/rad\n$q = {fmt_measure(popt[1], perr[1])}$\n$\chi^2/\\nu = {chi2:.1f}/{dof}$"
+draw_fit(ang_dists, img_dists, 0, err, res, line, popt, text)
 
 # find conversion factor
-px_tot = img_dists.sum()
-rad_tot = ang_dists.sum()
-px_to_rad = rad_tot / px_tot
-# error
-px_tot_err = img_dist_err * np.sqrt(len(img_dists))
-px_to_rad_err = px_tot_err * px_to_rad / px_tot
+px_to_rad = 1 / popt[0]
+px_to_rad_err = perr[0] / (popt[0] ** 2)
+# standard error
 print(f"\npixel-to-radian factor:\n\t{fmt_measure(px_to_rad, px_to_rad_err)} rad/px")
 
 
@@ -169,10 +174,14 @@ res = res[indexes]
 draw_halo_residuals(theta, res, err, R, chi2, dof)
 
 
-def refractive_index(theta_min, apex_angle):
-    """Returns the refractive index knowing
+def refractive_index(theta_min, apex_angle, theta_min_err=0):
+    """Returns the refractive index (and its standard error) knowing
     minimum angle of deviation and apex angle"""
-    return np.sin((theta_min + apex_angle) / 2) / np.sin(apex_angle / 2)
+    n = np.sin((theta_min + apex_angle) / 2) / np.sin(apex_angle / 2)
+    n_err = theta_min_err * np.abs(
+        1 / 2 * np.cos((theta_min + apex_angle) / 2) / np.sin(apex_angle / 2)
+    )
+    return n, n_err
 
 
 def vertex_angle(n):
@@ -186,7 +195,7 @@ def to_radians(degrees):
 
 
 # apex angles of regular polygons (3 to 8 sides)
-x_poly = np.array(
+apex_angle_poly = np.array(
     [
         vertex_angle(3),  # triangle
         vertex_angle(4),  # square
@@ -196,21 +205,32 @@ x_poly = np.array(
         to_radians(180) - vertex_angle(8),  # octagon
     ]
 )
-y_poly = refractive_index(angular_radius, x_poly)
+n_poly, n_poly_err = refractive_index(
+    angular_radius, apex_angle_poly, angular_radius_err
+)
 
 # refractive_index() graph
-x_ref_ind = np.linspace(0.01, 2 * np.pi - 0.01, 100)
-y_ref_ind = refractive_index(angular_radius, x_ref_ind)
+apex_angle_graph = np.linspace(0.01, 2 * np.pi - 0.01, 100)
+n_graph, _ = refractive_index(angular_radius, apex_angle_graph)
 
 # special polygons labels
 poly_labels = ["$3/6$\nlati", "$4$\nlati", "$5$\nlati", "", "$7$\nlati", "$8$\nlati"]
 # draw refractive_index() graph
-draw_refractive_index(x_ref_ind, y_ref_ind, x_poly, y_poly, poly_labels)
+draw_refractive_index(apex_angle_graph, n_graph, apex_angle_poly, n_poly, poly_labels)
 
 # print results for regular polygons
-print("\nrefractive indexes for regular polygons (3 to 8 sides):")
+print("\nrefractive indexes for regular polygons from 3 to 8 sides:")
 print("\t(sides, vertex angle, apex angle, n)")
-for i, (alpha, n) in enumerate(zip(x_poly, y_poly)):
+for i, (alpha, n, n_err) in enumerate(zip(apex_angle_poly, n_poly, n_poly_err)):
     print(
-        f"\t{i+3}   {vertex_angle(i+3)/np.pi*180:.2f}°   {alpha/np.pi*180:.2f}°   {n:.3f}"
+        f"\t{i+3}   {vertex_angle(i+3)/np.pi*180:.2f}°   {alpha/np.pi*180:.2f}°   {fmt_measure(n,n_err)}"
     )
+
+# print hexagon refractive index calculation results
+n_exp = 1.31
+n = n_poly[3]
+n_err = n_poly_err[3]
+n_sigma_dist = (n - n_exp) / n_err
+print("\nrefractive index for hexagon:")
+print(f"\tn = {fmt_measure(n, n_err)}\n\tn_exp = {n_exp}")
+print(f"\tn_sigma_dist = {n_sigma_dist:.1f}")
