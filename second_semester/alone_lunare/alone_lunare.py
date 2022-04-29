@@ -218,14 +218,6 @@ poly_labels = ["$3/6$\nlati", "$4$\nlati", "$5$\nlati", "", "$7$\nlati", "$8$\nl
 # draw refractive_index() graph
 draw_refractive_index(apex_angle_graph, n_graph, apex_angle_poly, n_poly, poly_labels)
 
-# print results for regular polygons
-print("\nrefractive indexes for regular polygons from 3 to 8 sides:")
-print("\t(sides, vertex angle, apex angle, n)")
-for i, (alpha, n, n_err) in enumerate(zip(apex_angle_poly, n_poly, n_poly_err)):
-    print(
-        f"\t{i+3}   {vertex_angle(i+3)/np.pi*180:.2f}°   {alpha/np.pi*180:.2f}°   {fmt_measure(n,n_err)}"
-    )
-
 # print hexagon refractive index calculation results
 n_exp = 1.31
 n = n_poly[3]
@@ -234,3 +226,12 @@ n_sigma_dist = (n - n_exp) / n_err
 print("\nrefractive index for hexagon:")
 print(f"\tn = {fmt_measure(n, n_err)}\n\tn_exp = {n_exp}")
 print(f"\tn_sigma_dist = {n_sigma_dist:.1f}")
+
+# print results for regular polygons
+print("\nrefractive indexes for regular polygons from 3 to 8 sides:")
+print("\t(sides, vertex angle, apex angle, n, sigma_dist)")
+for i, (alpha, n, n_err) in enumerate(zip(apex_angle_poly, n_poly, n_poly_err)):
+    sigma_dist = (n - n_exp) / n_err
+    print(
+        f"\t{i+3}   {vertex_angle(i+3)/np.pi*180:.2f}°   {alpha/np.pi*180:.2f}°   {fmt_measure(n,n_err)}   {sigma_dist:.1f}"
+    )

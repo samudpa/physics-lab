@@ -239,7 +239,7 @@ def draw_refractive_index(
 
             ax.scatter(xx, yy, s=6, zorder=5)
             ax.text(
-                xx, 3.6, label, ha="center", va="center", color="gray", bbox=text_bbox
+                xx, 3.6, label, ha="center", va="center", color="black", bbox=text_bbox
             )
 
     # xticks in multiples of pi
