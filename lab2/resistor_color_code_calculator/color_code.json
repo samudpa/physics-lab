@@ -1,0 +1,69 @@
+{
+    "digit": {
+        "black": 0,
+        "brown": 1,
+        "red": 2,
+        "orange": 3,
+        "yellow": 4,
+        "green": 5,
+        "blue": 6,
+        "violet": 7,
+        "grey": 8,
+        "white": 9
+    },
+    "multiplier": {
+        "black": 0,
+        "brown": 1,
+        "red": 2,
+        "orange": 3,
+        "yellow": 4,
+        "green": 5,
+        "blue": 6,
+        "violet": 7,
+        "grey": 8,
+        "white": 9,
+        "gold": -1,
+        "silver": -2,
+        "pink": -3
+    },
+    "tolerance": {
+        "brown": 1,
+        "red": 2,
+        "orange": 0.05,
+        "yellow": 0.02,
+        "green": 0.5,
+        "blue": 0.25,
+        "violet": 0.1,
+        "grey": 0.01,
+        "gold": 5,
+        "silver": 10
+    },
+    "tcr": {
+        "black": 250,
+        "brown": 100,
+        "red": 50,
+        "orange": 15,
+        "yellow": 25,
+        "green": 20,
+        "blue": 10,
+        "violet": 5,
+        "grey": 1
+    },
+    "synonims": {
+        "bk": "black",
+        "bn": "brown",
+        "rd": "red",
+        "og": "orange",
+        "ye": "yellow",
+        "gn": "green",
+        "bu": "blue",
+        "vt": "violet",
+        "gy": "grey",
+        "wh": "white",
+        "gd": "gold",
+        "sr": "silver",
+        "pk": "pink",
+        "purple": "violet",
+        "gray": "grey"
+    }
+}
