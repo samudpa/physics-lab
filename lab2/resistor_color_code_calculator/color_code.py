@@ -9,8 +9,8 @@ def fmt_resistance(
     """
     Returns a string containing correctly formatted resistance value.
     Examples:
-        fmt(33, 0, 5) -> 33Ω ±5%
-        fmt(68, 5, 10) -> 6.8MΩ ±10%
+        fmt_resistance(33, 0, 5) -> 33Ω ±5%
+        fmt_resistance(68, 5, 10) -> 6.8MΩ ±10%
     """
 
     # list of S.I. prefixes (1e-24 ~ 1e24)
@@ -35,7 +35,6 @@ def fmt_resistance(
     }
 
     sig = len(str(figures))  # significant figures
-    # magnitude = multiplier + sig  # magnitude of resistance value
     prefix_magnitude = 3 * math.ceil(
         multiplier / 3
     )  # choose the correct prefix's magnitude (24 ~ -24)
@@ -71,7 +70,7 @@ def get_dictionary_key(key, dic):
 def get_resistance(bands):
     """
     Find resistance value from a list of color bands, as per IEC 60062:2016.
-    (see https://en.wikipedia.org/wiki/Electronic_color_code#Resistors)
+    (see https://en.wikipedia.org/wiki/Electronic_color_code#Color_band_system)
     """
 
 
