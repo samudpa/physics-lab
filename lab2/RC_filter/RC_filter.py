@@ -57,7 +57,7 @@ ax.set_yscale("log")
 ax.grid(which="minor", color="#dddddd", linestyle="--")
 ax.grid(which="major", color="#aaaaaa")
 ax.legend(loc="lower right")
-ax.set_title("Filtro RC passa-alto")
+ax.set_title("Guadagno filtro RC passa-alto")
 ax.set_xlabel("$f$ [Hz]")
 ax.set_ylabel("Guadagno")
 
@@ -70,3 +70,47 @@ ax_dB.set_ylim(20*np.log10(1e-2), 20*np.log10(1.2))
 ax_dB.set_ylabel("Guadagno [dB]")
 
 plt.savefig("Gain.png", dpi=400)
+plt.close()
+
+# remove data entries that don't have a measurement for phase shift (deltaT != 0)
+indexes = (deltaT != 0) # array of bools: True if phase shift was measured, False otherwise
+f = f[indexes]
+f_err = f_err[indexes]
+deltaT = deltaT[indexes] * 1e-3 # [s]
+deltaT_err = deltaT_err[indexes] * 1e-3 # [s]
+
+phaseshift = np.pi * (1 - 2 * deltaT * f) # [rad]
+phaseshift_err = 2 * np.pi * np.sqrt((deltaT_err * f)**2 + (deltaT * f_err)**2)
+
+def phase(f, fcut):
+    """Phase model for a RC high-pass filter"""
+    return np.arctan(fcut/f)
+
+# find best-fit parameter for the cutoff frequency, using phase shift data
+init = [popt[0]]
+popt, pcov = curve_fit(phase, f, phaseshift, sigma=phaseshift_err, p0=init, absolute_sigma=False)
+perr = np.sqrt(np.diag(pcov))
+k2 = (((phaseshift - phase(f, *popt))/phaseshift_err)**2).sum()
+ndof = len(phaseshift) - 1
+print("\nCutoff frequency (best fit) [Hz]", popt[0], perr[0])
+print("Chi2/ndof", k2, ndof, k2/ndof)
+
+# plot parameters
+plt.style.use(["science"])
+plt.figure(figsize=(3.5, 2.5))
+
+# plot data points and model
+plt.errorbar(f, phaseshift, xerr=f_err, yerr=phaseshift_err, fmt='.', markersize=3, color="#004488", label="Dati", zorder=3)
+plt.plot(xx, phase(xx, *popt), color="red", label="Best-fit", alpha=0.7, zorder=2)
+
+plt.xscale("log")
+plt.xlim(25,15000)
+plt.ylim(0, 1.65)
+plt.grid(which="minor", color="#dddddd", linestyle="--")
+plt.grid(which="major", color="#aaaaaa")
+plt.legend(loc="lower left")
+plt.title("Sfasamento filtro RC passa-alto")
+plt.xlabel("$f$ [Hz]")
+plt.ylabel("$\\Delta \\varphi$ [rad]")
+
+plt.savefig("Phase shift.png", dpi=400)
