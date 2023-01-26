@@ -42,7 +42,7 @@ for k in range(1, Ns.max() + 1, 2):
         # sum of squared residuals. Used to determine "quality" of results
         sumres_square = ((square_wave - model_square_wave)**2).sum()
         sumres_triangle = ((triangle_wave - model_triangle_wave)**2).sum()
-        print(f"N = {k}; sumres_square   = {sumres_square:.2g}")
+        print(f"N = {k}; sumres_square   = {sumres_square-0.5:.2g} ({sumres_square:.2g})")
         print(f"N = {k}; sumres_triangle = {sumres_triangle:.2g}")
         # NOTE: if sumres_square converges to a value >0, that is because of
         #       aliasing problems at the "jumping" points between y=-0.5 and y=0.5
