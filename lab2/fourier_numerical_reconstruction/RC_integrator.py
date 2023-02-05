@@ -80,12 +80,12 @@ for data_entry in waves_data.transpose():
 
     # plot results
     plt.style.use(["science"])
-    plt.figure(figsize=(3.2, 2), dpi=320)
+    plt.figure(figsize=(2.4, 1.5), dpi=320)
     plt.errorbar(wave_data[:,0], wave_data[:,1], xerr=dt, yerr=1, color="red", fmt='.', markersize=2, zorder=1) # plot data
     plt.plot(t, simulated_wave, color="blue", alpha=0.8, zorder=2) # plot simulated wave
 
-    plt.title(f"$f$ = ${f}\pm{f_err}$ Hz, {samples} pts, $\Delta t = {dt:.1f} \mu s$")
-    plt.xlabel("Tempo [$\mu s$]")
+    plt.title(f"$f$ = ${f}\pm{f_err}$ Hz, {samples} pts")
+    plt.xlabel(f"Tempo [$\mu s$] ($\Delta t = {dt:.1f} \mu s$)")
     plt.ylabel("$V$ [digit]")
 
     # color area that was discarded in the DC offset calculation
