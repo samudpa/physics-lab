@@ -33,8 +33,8 @@ def G(f):
 plt.style.use(["science"])
 plt.figure(figsize=(4,3),dpi=320)
 
-plt.plot(freqs, amps, label="Simulazione", zorder=2)
-plt.plot(freqs, G(freqs), label="$1/\\sqrt{1 + (f/f_T)^2}$", ls="--", alpha=0.75, zorder=1)
+plt.plot(freqs, amps, label="Simulazione", color="blue", zorder=2)
+plt.plot(freqs, G(freqs), label="$1/\\sqrt{1 + (f/f_T)^2}$", ls="--", color="red", alpha=0.75, zorder=1)
 
 plt.yscale("log")
 plt.xscale("log")
@@ -47,4 +47,4 @@ plt.ylabel("Guadagno")
 plt.grid()
 plt.legend()
 
-plt.savefig("lowpass_gain/gain.png")
+plt.savefig("lowpass_gain/lowpass_gain.png")
