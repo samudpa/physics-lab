@@ -16,8 +16,8 @@ plt.style.use(["science"])
 props = dict(boxstyle='round', facecolor='white', alpha=0.9)
 
 # init figures
-fig_pulsetrain = plt.figure(1, figsize=(4, 4), dpi=320) # pulse train figure
-fig_integrator = plt.figure(2, figsize=(4, 4), dpi=320) # pulse train through differentiator
+fig_pulsetrain = plt.figure(1, figsize=(4, 3.7), dpi=320) # pulse train figure
+fig_integrator = plt.figure(2, figsize=(4, 3.7), dpi=320) # pulse train through differentiator
 
 # init subplots
 axes_p = fig_pulsetrain.subplots(nrows=4, ncols=2, sharex=True, sharey=True)
