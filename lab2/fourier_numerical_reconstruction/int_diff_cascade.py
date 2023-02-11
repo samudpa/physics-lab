@@ -5,8 +5,12 @@ SAMPLES = 2048 # number of samples
 N = SAMPLES * 2 # number of iterations
 
 # cutoff frequencies for integrator and differentiator
-cutoff_int = 30 # Hz
-cutoff_diff = 15e3 # Hz
+cutoff_int = 1.03 # Hz
+cutoff_diff = 10.7e3 # Hz
+
+# estimated gain for frequencies that are much greater than
+# cutoff_int and much smaller than cutoff_diff.
+print(f"expected G = {cutoff_int/cutoff_diff:.4g}")
 
 # create an array of different frequencies
 freqs_start = np.log10(cutoff_int)
@@ -38,14 +42,16 @@ for f, ax in zip(freqs, axes):
 
         wave += ck * gain_int * gain_diff * np.sin(2*np.pi*fk*t + phaseshift_int + phaseshift_diff)
 
-    ax.plot(t*f, 1e3*wave, "blue")
+    print(f"G = {wave.max() - wave.min():.4g}") # simple gain estimate
+
+    ax.plot(t*f, 1e4*wave, "blue")
     ax.grid()
-    ax.set_ylim(-2.25, 2.25)
+    ax.set_ylim(-1, 1)
     ax.set_xlim(-2, 2)
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.8)
-    ax.text(2, -2, f"{f:.1f} Hz", fontsize=8, verticalalignment="center", horizontalalignment="right", bbox=props)
+    ax.text(1, 0, f"{f:.1f} Hz", fontsize=8, verticalalignment="center", horizontalalignment="right", bbox=props, transform=ax.transAxes)
 
-fig.supylabel("Ampiezza [$10^{-3}$ u.a.]")
+fig.supylabel("Ampiezza [$10^{-4}$ u.a.]")
 fig.supxlabel("Tempo [periodi]")
 plt.savefig("int_diff_cascade/int_diff_cascade.png")
