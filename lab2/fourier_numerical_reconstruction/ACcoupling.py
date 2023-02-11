@@ -30,22 +30,28 @@ for k in range(1, ITERATIONS+1, 2):
 wave *= amplitude
 
 plt.style.use(["science"])
-plt.figure(figsize=(5,4))
+plt.figure(figsize=(5,4),dpi=320)
+
+# background color
 ax = plt.axes()
 ax.set_facecolor('#1e1e1e')
 
 # grid
-plt.locator_params(axis='y', nbins=vertical_divs)
-plt.locator_params(axis='x', nbins=horizontal_divs)
+plt.locator_params(axis='x', nbins=horizontal_divs) # set horizontal divs
+plt.locator_params(axis='y', nbins=vertical_divs) # set vertical divs
+ax.tick_params(axis='both', which='both',length=0) # hide ticks
 plt.grid(color="#707070")
 
 plt.xlabel("Tempo [$s$]")
 plt.ylabel("Ampiezza [$V$]")
 
-props = dict(boxstyle='round', facecolor='white', alpha=0.8)
-plt.text(1, 1, f"{vertscale}V/DIV\n{sweeptime}s/DIV", fontsize=11, verticalalignment="top", horizontalalignment="right", bbox=props, transform=ax.transAxes)
+# text box
+props = dict(boxstyle='round', facecolor='white')
+plt.text(1, 1, f"${vertscale}$V/DIV\n${sweeptime}$s sweep", fontsize=11, verticalalignment="top", horizontalalignment="right", bbox=props, transform=ax.transAxes)
 
+# limits
 plt.plot(t, wave, color="lightgreen")
 plt.xlim(0, horizontal_divs*sweeptime)
 plt.ylim(-vertical_divs*vertscale/2, vertical_divs*vertscale/2)
+
 plt.savefig("ACcoupling/oscilloscope_ACcoupling.png")
