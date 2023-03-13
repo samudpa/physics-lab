@@ -1,0 +1,4 @@
+folder,basename,C
+./data/12_damping/,0_1uF.txt,0.1e-6
+./data/12_damping/,0_22uF.txt,0.22e-6
+./data/12_damping/,0_47uF.txt,0.47e-6
