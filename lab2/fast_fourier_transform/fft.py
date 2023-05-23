@@ -126,7 +126,7 @@ class WaveEntry:
     def do_graph(self):
         """Graph the output"""
 
-        fig = Figure(figsize=(3.6,3), dpi=320)
+        fig = Figure(figsize=(3.6, 3), dpi=320)
         fig.set_tight_layout(True)
         fig.set_tight_layout(dict(w_pad=0.6, h_pad=0.3))
         # fig.suptitle(self.title)
@@ -145,7 +145,7 @@ class WaveEntry:
             yerr=self.errs,
             fmt=".",
             ms=0.4,
-            color="black"
+            color="black",
         )
         t_ax.plot(
             self.t * 1e3,
@@ -173,7 +173,7 @@ class WaveEntry:
                 yerr=self.errs,
                 fmt=".",
                 ms=0.4,
-                color="black"
+                color="black",
             )
             tzoom_ax.plot(
                 self.t * 1e3,
@@ -183,9 +183,9 @@ class WaveEntry:
                 color="black",
             )
             # limits
-            halft = self.t_max/2
-            period = 1/self.basefreq
-            tzoom_ax.set_xlim((halft-period)*1e3, (halft+period)*1e3)
+            halft = self.t_max / 2
+            period = 1 / self.basefreq
+            tzoom_ax.set_xlim((halft - period) * 1e3, (halft + period) * 1e3)
             # labels
             tzoom_ax.tick_params(labelleft=False)
             tzoom_ax.set_xlabel("$t$ [ms]")
@@ -223,7 +223,8 @@ class WaveEntry:
 
         self.fig = fig
         self.axes = [t_ax, f_ax]
-        if self.show_closeup: self.axes.append(tzoom_ax)
+        if self.show_closeup:
+            self.axes.append(tzoom_ax)
 
         if self._loadkey("graph_harmonics", False):
             self.graph_harmonics(30)
@@ -295,7 +296,9 @@ class WaveEntry:
 
         # legend
         # https://stackoverflow.com/a/25540279
-        legend = self.axes[1].legend(fontsize=8, loc="upper right", framealpha=0.7, labelspacing=0.2)
+        legend = self.axes[1].legend(
+            fontsize=8, loc="upper right", framealpha=0.7, labelspacing=0.2
+        )
         legend.get_frame().set_linewidth(0)
 
         graphfolder = os.path.join(folder, os.path.dirname(self.filename))
