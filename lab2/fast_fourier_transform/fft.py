@@ -4,6 +4,7 @@ from scipy.fft import fft, fftfreq
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
+import matplotlib as mpl
 import matplotlib.ticker
 import scienceplots
 
@@ -16,6 +17,16 @@ data = np.genfromtxt(
     "./data/data.csv", delimiter=",", names=True, dtype=None, encoding="utf-8"
 )
 
+def fmt_measure(value, err, sig=2, sep=" \pm "):
+    """Returns a formatted string of (value, err)
+    with the error rounded to `sig` significant figures"""
+
+    decimals = int(sig - np.floor(np.log10(np.abs(err))) - 1)
+    if decimals >= 0:
+        formatter = "{:." + str(decimals) + "f}"
+        return formatter.format(value) + sep + formatter.format(err)
+    if decimals < 0:
+        return f"{int(np.round(value, decimals))}{sep}{int(np.round(err, decimals))}"
 
 class WaveEntry:
     _BASE_TIME_ERR = 10  # [us]
@@ -56,6 +67,10 @@ class WaveEntry:
     f_max: float
     fft_min: float | None
     show_closeup: bool
+
+    # RLC oscillator variables
+    Qf: float
+    Qf_err: float
 
     def __init__(self, entry_data):
         folder = entry_data["folder"]
@@ -116,7 +131,6 @@ class WaveEntry:
         self.f = fftfreq(self.N, self.dt)[: self.N // 2]
         self.spectrum = fft(self.values)[: self.N // 2]
         self.spectrum_errs = fft(self.errs)[: self.N // 2]
-        # dato che la fft è lineare: L'ERRORE SULLA FFT è LA FFT SULL'ERRORE
 
         basefreq_index = np.argmax(np.abs(self.spectrum)[1:]) + 1
         self.basefreq = self.f[basefreq_index]
@@ -193,6 +207,7 @@ class WaveEntry:
             tzoom_ax.grid(which="major", axis="both", color="gray", zorder=0)
 
         # frequency spectrum
+        basefreq_err = self.samplerate/self.N
         f_ax = fig.add_subplot(gs[1, :])
         f_ax.plot(
             self.f * 1e-3,
@@ -204,7 +219,7 @@ class WaveEntry:
         f_ax.axvline(
             self.basefreq * 1e-3,
             color="blue",
-            label=f"$f_1 = {self.basefreq:.0f}$ Hz",
+            label=f"$f_1 = {fmt_measure(self.basefreq, basefreq_err)}$ Hz",
             linewidth=0.7,
             zorder=1,
         )
@@ -235,6 +250,9 @@ class WaveEntry:
         rcfilter_cutoff = self._loadkey("RC_int_cutoff", False)
         if rcfilter_cutoff:
             self.graph_RC_filter(rcfilter_cutoff, power)
+
+        if self._loadkey("RLC_oscillator", False):
+            self.rlc_oscillator()
 
     def graph_one_over(self, power):
         scale = self.basefreq_amplitude
@@ -291,6 +309,21 @@ class WaveEntry:
                 alpha=alpha,
             )
 
+    def rlc_oscillator(self):
+        """Compute RLC oscillator parameters"""
+
+        omega0 = self.dataentry["RLC_omega"]
+        omega0_err = self.dataentry["RLC_omega_err"]
+        tau = self.dataentry["RLC_tau"] *1e-3
+        tau_err = self.dataentry["RLC_tau_err"] *1e-3
+
+        Qf = omega0 * tau/2
+        Qf_err = Qf * (omega0_err/omega0 + tau_err/tau)
+
+        self.Qf = Qf
+        self.Qf_err = Qf_err
+        print(f"\tQf = {fmt_measure(Qf, Qf_err)}")
+
     def save_graph(self, folder):
         """Save the graph into folder"""
 
@@ -305,9 +338,10 @@ class WaveEntry:
         if not os.path.isdir(graphfolder):
             os.makedirs(graphfolder)
 
-        self.fig.savefig(os.path.join(graphfolder, self.basename))
+        self.fig.savefig(os.path.join(graphfolder, self.basename + ".png"))
         plt.close(self.fig)
 
+Qf_plot_wavs = []
 
 # main loop starts here
 for data_entry in data:
@@ -317,3 +351,47 @@ for data_entry in data:
     plt.style.use(["science", "grid"])
     wav.do_graph()
     wav.save_graph("./graphs")
+    
+    if wav._loadkey("include_in_Qf_plot", False):
+        Qf_plot_wavs.append(wav)
+
+# quality factor comparison plot
+Qf_plot_wavs.sort(key=lambda x: x.Qf)
+Qf_max = Qf_plot_wavs[-1].Qf
+Qf_min = Qf_plot_wavs[0].Qf
+
+cmap = mpl.colormaps["plasma"] # https://matplotlib.org/stable/tutorials/colors/colormaps.html
+norm = mpl.colors.Normalize(vmin=Qf_min, vmax=Qf_max)
+def Qf_cmap(Qf):
+    x = (Qf - Qf_min)/(Qf_max - Qf_min)
+    return cmap(x)
+
+# https://stackoverflow.com/a/61090677
+plt.close()
+fig = plt.figure(figsize=(3.6, 3), dpi=320)
+ax = fig.add_subplot(111)
+
+ax.set_yscale("log")
+ax.set_ylim(1e-2, 10)
+ax.set_xlim(0.25,1.75)
+
+for wav in Qf_plot_wavs:
+    
+    fs = wav.f[1:]
+    spectrum = np.abs(wav.spectrum)[1:]/wav.N
+    xscale = 1/wav.basefreq
+    yscale = 1/wav.basefreq_amplitude
+    fs *= xscale
+    spectrum *= yscale
+
+    Qf = wav.Qf
+    Qf_err = wav.Qf_err
+
+    ax.plot(fs, spectrum, color=Qf_cmap(Qf), label=f"Qf = ${fmt_measure(Qf, Qf_err)}$", linewidth=0.7, alpha=0.8)
+
+ax.set_ylabel("Ampiezza [u.a.]")
+ax.set_xlabel("Frequenza [u.a.]")
+
+cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap))
+cbar.set_label("Quality factor", rotation=270, labelpad=15)
+plt.savefig("./graphs/qf.png")
