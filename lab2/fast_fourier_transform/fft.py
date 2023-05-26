@@ -371,7 +371,7 @@ fig = plt.figure(figsize=(3.6, 3), dpi=320)
 ax = fig.add_subplot(111)
 
 ax.set_yscale("log")
-ax.set_ylim(1e-2, 10)
+ax.set_ylim(1e-2, 3)
 ax.set_xlim(0.25,1.75)
 
 for wav in Qf_plot_wavs:
