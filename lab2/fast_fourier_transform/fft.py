@@ -366,7 +366,6 @@ def Qf_cmap(Qf):
     x = (Qf - Qf_min)/(Qf_max - Qf_min)
     return cmap(x)
 
-# https://stackoverflow.com/a/61090677
 plt.close()
 fig = plt.figure(figsize=(3.6, 3), dpi=320)
 ax = fig.add_subplot(111)
