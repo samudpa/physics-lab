@@ -9,4 +9,5 @@ Data-Model comparison:
 - [fast_fourier_transform](./fast_fourier_transform/): frequency analysis of various signals using the fast Fourier transform
 
 Misc:
-- [resistor_color_code_calculator](./resistor_color_code_calculator/): python script that determines resistance, tolerance, and TCR of a resistor from its colored bands
+- [color_code.py](./resistor_color_code_calculator/): python script that determines resistance, tolerance, and TCR of a resistor from its colored bands
+- [genwaveimg.py](./genwaveimg/): python script that plots time-amplitude data recorded using Arduino
